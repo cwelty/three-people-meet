@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is the document owner
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Helper function to check if user is a member of the group
+    function isGroupMember(groupId) {
+      return isAuthenticated() &&
+        request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.memberIds;
+    }
+
+    // Helper function to check if user is a creator of the group
+    function isGroupCreator(groupId) {
+      return isAuthenticated() &&
+        request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.creatorIds;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read their own document
+      allow read: if isAuthenticated() && isOwner(userId);
+
+      // Users can create their own document
+      allow create: if isAuthenticated() && isOwner(userId);
+
+      // Users can update their own document
+      allow update: if isAuthenticated() && isOwner(userId);
+
+      // Users cannot delete their document (could add admin override)
+      allow delete: if false;
+    }
+
+    // Groups collection
+    match /groups/{groupId} {
+      // Group members can read the group
+      allow read: if isGroupMember(groupId);
+
+      // Any authenticated user can create a group
+      allow create: if isAuthenticated() &&
+        request.resource.data.creatorIds.hasOnly([request.auth.uid]) &&
+        request.resource.data.memberIds.hasOnly([request.auth.uid]);
+
+      // Group members can update (for joining/leaving)
+      // Creators can update all fields
+      allow update: if isGroupMember(groupId) || (
+        isAuthenticated() &&
+        request.auth.uid in resource.data.memberIds == false &&
+        request.resource.data.memberIds.hasAll(resource.data.memberIds) &&
+        request.resource.data.memberIds.size() == resource.data.memberIds.size() + 1
+      );
+
+      // Only creators can delete the group
+      allow delete: if isGroupCreator(groupId);
+
+      // Pairings subcollection
+      match /pairings/{pairingId} {
+        // Group members can read pairings
+        allow read: if isGroupMember(groupId);
+
+        // Only creators can create/update pairings
+        allow create: if isGroupCreator(groupId);
+        allow update: if isGroupCreator(groupId);
+
+        // Pairings should not be deleted
+        allow delete: if false;
+      }
+
+      // Pairing history subcollection
+      match /pairingHistory/{historyId} {
+        // Group members can read history
+        allow read: if isGroupMember(groupId);
+
+        // Only creators can create history (append-only)
+        allow create: if isGroupCreator(groupId);
+
+        // History should not be updated or deleted
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+  }
+}

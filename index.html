@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Three People Meet</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen active">
+            <div class="loading-content">
+                <div class="logo-large">3PM</div>
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <!-- Auth Screen -->
+        <div id="auth-screen" class="screen">
+            <div class="auth-container">
+                <div class="logo-large">3PM</div>
+                <h1>Three People Meet</h1>
+                <p class="tagline">Find your trio, share your interests</p>
+
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Log In</button>
+                    <p class="auth-switch">
+                        Don't have an account? <a href="#" id="show-register">Sign up</a>
+                    </p>
+                </form>
+
+                <!-- Register Form -->
+                <form id="register-form" class="auth-form hidden">
+                    <div class="form-group">
+                        <label for="register-name">Display Name</label>
+                        <input type="text" id="register-name" required autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" required minlength="6" autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Sign Up</button>
+                    <p class="auth-switch">
+                        Already have an account? <a href="#" id="show-login">Log in</a>
+                    </p>
+                </form>
+
+                <div id="auth-error" class="error-message hidden"></div>
+            </div>
+        </div>
+
+        <!-- Interests Screen -->
+        <div id="interests-screen" class="screen">
+            <header class="screen-header">
+                <h2>Your Interests</h2>
+                <p>Select exactly 10 interests that describe you</p>
+            </header>
+            <div class="interests-container">
+                <div id="interests-count" class="interests-count">0 / 10 selected</div>
+                <div id="interests-grid" class="interests-grid"></div>
+                <button id="save-interests-btn" class="btn btn-primary btn-full" disabled>Save Interests</button>
+            </div>
+        </div>
+
+        <!-- Main Screen (Groups List) -->
+        <div id="main-screen" class="screen">
+            <header class="screen-header">
+                <div class="header-top">
+                    <div class="logo">3PM</div>
+                    <button id="profile-btn" class="btn btn-icon">
+                        <span class="icon-profile">👤</span>
+                    </button>
+                </div>
+                <h2>Your Groups</h2>
+            </header>
+            <div class="groups-container">
+                <div id="groups-list" class="groups-list"></div>
+                <div id="no-groups" class="empty-state hidden">
+                    <p>You haven't joined any groups yet!</p>
+                    <p>Create a new group or join one with a code.</p>
+                </div>
+            </div>
+            <div class="bottom-actions">
+                <button id="create-group-btn" class="btn btn-primary">Create Group</button>
+                <button id="join-group-btn" class="btn btn-secondary">Join Group</button>
+            </div>
+        </div>
+
+        <!-- Create Group Modal -->
+        <div id="create-group-modal" class="modal hidden">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <h3>Create New Group</h3>
+                <form id="create-group-form">
+                    <div class="form-group">
+                        <label for="group-name">Group Name</label>
+                        <input type="text" id="group-name" required placeholder="e.g., Book Club Friends">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Create Group</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Join Group Modal -->
+        <div id="join-group-modal" class="modal hidden">
+            <div class="modal-content">
+                <button class="modal-close">&times;</button>
+                <h3>Join Group</h3>
+                <form id="join-group-form">
+                    <div class="form-group">
+                        <label for="group-code">Group Code</label>
+                        <input type="text" id="group-code" required placeholder="Enter 6-character code" maxlength="6" style="text-transform: uppercase;">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Join Group</button>
+                </form>
+                <div id="join-error" class="error-message hidden"></div>
+            </div>
+        </div>
+
+        <!-- Group Detail Screen -->
+        <div id="group-screen" class="screen">
+            <header class="screen-header">
+                <button id="back-to-groups" class="btn btn-back">← Back</button>
+                <h2 id="group-title">Group Name</h2>
+                <div id="group-code-display" class="group-code"></div>
+            </header>
+            <div class="group-content">
+                <!-- Current Pairing Section -->
+                <section id="current-pairing-section" class="section">
+                    <h3>Your Current Trio</h3>
+                    <div id="current-pairing" class="pairing-card">
+                        <p class="no-pairing">No pairings yet. Wait for a creator to generate pairings!</p>
+                    </div>
+                </section>
+
+                <!-- Members Section -->
+                <section class="section">
+                    <h3>Members (<span id="member-count">0</span>)</h3>
+                    <div id="members-list" class="members-list"></div>
+                </section>
+
+                <!-- Creator Controls -->
+                <section id="creator-controls" class="section hidden">
+                    <h3>Creator Controls</h3>
+                    <div class="creator-actions">
+                        <button id="generate-pairings-btn" class="btn btn-primary btn-full">Generate New Pairings</button>
+                        <button id="view-all-pairings-btn" class="btn btn-secondary btn-full">View All Pairings</button>
+                        <button id="trigger-reveal-btn" class="btn btn-accent btn-full">Dramatic Reveal!</button>
+                    </div>
+                </section>
+
+                <!-- Pairing History -->
+                <section class="section">
+                    <h3>Your Pairing History</h3>
+                    <div id="pairing-history" class="history-list">
+                        <p class="no-history">No pairing history yet.</p>
+                    </div>
+                </section>
+
+                <!-- Group Actions -->
+                <section class="section">
+                    <button id="leave-group-btn" class="btn btn-danger btn-full">Leave Group</button>
+                </section>
+            </div>
+        </div>
+
+        <!-- All Pairings Modal (for creators) -->
+        <div id="all-pairings-modal" class="modal hidden">
+            <div class="modal-content modal-large">
+                <button class="modal-close">&times;</button>
+                <h3>All Pairings - Round <span id="current-round">1</span></h3>
+                <div id="all-pairings-list" class="pairings-list"></div>
+            </div>
+        </div>
+
+        <!-- Dramatic Reveal Screen -->
+        <div id="reveal-screen" class="screen">
+            <div id="reveal-container" class="reveal-container">
+                <div id="reveal-countdown" class="reveal-countdown hidden">
+                    <span id="countdown-number">3</span>
+                </div>
+                <div id="reveal-content" class="reveal-content hidden">
+                    <h2>Your Trio!</h2>
+                    <div id="reveal-card" class="reveal-card">
+                        <div class="reveal-card-inner">
+                            <div class="reveal-card-front">
+                                <div class="card-mystery">?</div>
+                            </div>
+                            <div class="reveal-card-back">
+                                <div id="reveal-members" class="reveal-members"></div>
+                                <div id="reveal-interests" class="reveal-interests"></div>
+                                <div id="reveal-activity" class="reveal-activity"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="reveal-done-btn" class="btn btn-primary hidden">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Screen -->
+        <div id="profile-screen" class="screen">
+            <header class="screen-header">
+                <button id="back-from-profile" class="btn btn-back">← Back</button>
+                <h2>Profile</h2>
+            </header>
+            <div class="profile-content">
+                <div class="profile-info">
+                    <div id="profile-avatar" class="profile-avatar">👤</div>
+                    <h3 id="profile-name">User Name</h3>
+                    <p id="profile-email">user@email.com</p>
+                </div>
+                <section class="section">
+                    <h4>Your Interests</h4>
+                    <div id="profile-interests" class="interests-tags"></div>
+                    <button id="edit-interests-btn" class="btn btn-secondary btn-full">Edit Interests</button>
+                </section>
+                <section class="section">
+                    <button id="logout-btn" class="btn btn-danger btn-full">Log Out</button>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/groups.js"></script>
+    <script src="js/pairing.js"></script>
+    <script src="js/reveal.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
