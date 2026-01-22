@@ -71,8 +71,8 @@ service cloud.firestore {
         allow create: if isGroupCreator(groupId);
         allow update: if isGroupCreator(groupId);
 
-        // Pairings should not be deleted
-        allow delete: if false;
+        // Only creators can delete pairings (for group deletion)
+        allow delete: if isGroupCreator(groupId);
       }
 
       // Pairing history subcollection
@@ -83,9 +83,11 @@ service cloud.firestore {
         // Only creators can create history (append-only)
         allow create: if isGroupCreator(groupId);
 
-        // History should not be updated or deleted
+        // History should not be updated
         allow update: if false;
-        allow delete: if false;
+
+        // Only creators can delete history (for group deletion)
+        allow delete: if isGroupCreator(groupId);
       }
     }
   }

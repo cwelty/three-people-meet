@@ -200,16 +200,7 @@ const Groups = {
                 return { success: false, error: 'Only creators can delete a group.' };
             }
 
-            const memberIds = group.memberIds || [];
-
-            // Remove group from all members' groupIds
             const batch = db.batch();
-            for (const memberId of memberIds) {
-                const userRef = db.collection('users').doc(memberId);
-                batch.update(userRef, {
-                    groupIds: firebase.firestore.FieldValue.arrayRemove(groupId)
-                });
-            }
 
             // Delete all pairings subcollection
             const pairingsSnapshot = await db.collection('groups').doc(groupId)
@@ -230,10 +221,18 @@ const Groups = {
 
             await batch.commit();
 
+            // Remove from current user's groupIds
+            await db.collection('users').doc(Auth.currentUser.uid).update({
+                groupIds: firebase.firestore.FieldValue.arrayRemove(groupId)
+            });
+
             // Update local user data
             if (Auth.userData.groupIds) {
                 Auth.userData.groupIds = Auth.userData.groupIds.filter(id => id !== groupId);
             }
+
+            // Note: Other members will have stale groupIds which get cleaned up
+            // when they load their groups (getUserGroups filters out missing groups)
 
             return { success: true };
         } catch (error) {
@@ -265,6 +264,17 @@ const Groups = {
                 snapshot.forEach(doc => {
                     groups.push({ id: doc.id, ...doc.data() });
                 });
+            }
+
+            // Clean up stale groupIds (groups that no longer exist)
+            const foundIds = new Set(groups.map(g => g.id));
+            const staleIds = groupIds.filter(id => !foundIds.has(id));
+            if (staleIds.length > 0) {
+                console.log('Cleaning up stale groupIds:', staleIds);
+                await db.collection('users').doc(Auth.currentUser.uid).update({
+                    groupIds: groups.map(g => g.id)
+                });
+                Auth.userData.groupIds = groups.map(g => g.id);
             }
 
             return groups;
