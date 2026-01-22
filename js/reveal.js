@@ -81,6 +81,10 @@ const Reveal = {
             return;
         }
 
+        // Get group color
+        const group = Groups.currentGroup || await Groups.getGroup(groupId);
+        const groupColor = group?.color || '#E07A5F';
+
         // Get member data
         const members = await Groups.getGroupMembers(groupId);
         const pairingMembers = pairing.members.map(memberId =>
@@ -116,7 +120,7 @@ const Reveal = {
                 revealContent.classList.remove('hidden');
 
                 // Populate reveal card
-                Reveal.populateRevealCard(pairingMembers, pairing);
+                Reveal.populateRevealCard(pairingMembers, pairing, groupColor);
 
                 // Flip card after short delay
                 setTimeout(() => {
@@ -132,12 +136,12 @@ const Reveal = {
     },
 
     // Populate the reveal card with pairing data
-    populateRevealCard(members, pairing) {
+    populateRevealCard(members, pairing, groupColor = '#E07A5F') {
         // Members
         const membersContainer = document.getElementById('reveal-members');
         membersContainer.innerHTML = members.map(member => `
             <div class="reveal-member">
-                <div class="member-avatar">${Reveal.getInitials(member.displayName)}</div>
+                <div class="member-avatar" style="background-color: ${groupColor}40">${App.getMemberAvatar(member)}</div>
                 <div class="member-name">${member.displayName}</div>
             </div>
         `).join('');
@@ -164,16 +168,6 @@ const Reveal = {
             <h4>Suggested Activity</h4>
             <p>${pairing.suggestedActivity}</p>
         `;
-    },
-
-    // Get initials from name
-    getInitials(name) {
-        if (!name) return '?';
-        const parts = name.trim().split(' ');
-        if (parts.length >= 2) {
-            return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-        }
-        return name.substring(0, 2).toUpperCase();
     },
 
     // Handle reveal done

@@ -8,13 +8,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90' font-family='Arial' font-weight='bold' fill='%23E07A5F'>3</text></svg>">
 </head>
 <body>
     <div id="app">
         <!-- Loading Screen -->
         <div id="loading-screen" class="screen active">
             <div class="loading-content">
-                <div class="logo-large">3PM</div>
+                <div class="logo-large">Three People Meet</div>
                 <div class="loading-spinner"></div>
             </div>
         </div>
@@ -22,45 +23,21 @@
         <!-- Auth Screen -->
         <div id="auth-screen" class="screen">
             <div class="auth-container">
-                <div class="logo-large">3PM</div>
+                <div class="logo-large">Three People Meet</div>
                 <h1>Three People Meet</h1>
                 <p class="tagline">Find your trio, share your interests</p>
 
-                <!-- Login Form -->
-                <form id="login-form" class="auth-form">
-                    <div class="form-group">
-                        <label for="login-email">Email</label>
-                        <input type="email" id="login-email" required autocomplete="email">
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" required autocomplete="current-password">
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-full">Log In</button>
-                    <p class="auth-switch">
-                        Don't have an account? <a href="#" id="show-register">Sign up</a>
-                    </p>
-                </form>
-
-                <!-- Register Form -->
-                <form id="register-form" class="auth-form hidden">
-                    <div class="form-group">
-                        <label for="register-name">Display Name</label>
-                        <input type="text" id="register-name" required autocomplete="name">
-                    </div>
-                    <div class="form-group">
-                        <label for="register-email">Email</label>
-                        <input type="email" id="register-email" required autocomplete="email">
-                    </div>
-                    <div class="form-group">
-                        <label for="register-password">Password</label>
-                        <input type="password" id="register-password" required minlength="6" autocomplete="new-password">
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-full">Sign Up</button>
-                    <p class="auth-switch">
-                        Already have an account? <a href="#" id="show-login">Log in</a>
-                    </p>
-                </form>
+                <div class="auth-form">
+                    <button id="google-sign-in-btn" class="btn btn-google btn-full">
+                        <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Continue with Google
+                    </button>
+                </div>
 
                 <div id="auth-error" class="error-message hidden"></div>
             </div>
@@ -69,13 +46,25 @@
         <!-- Interests Screen -->
         <div id="interests-screen" class="screen">
             <header class="screen-header">
-                <h2>Your Interests</h2>
-                <p>Select exactly 10 interests that describe you</p>
+                <h2>Set Up Your Profile</h2>
+                <p>Choose your avatar and interests</p>
             </header>
             <div class="interests-container">
-                <div id="interests-count" class="interests-count">0 / 10 selected</div>
-                <div id="interests-grid" class="interests-grid"></div>
-                <button id="save-interests-btn" class="btn btn-primary btn-full" disabled>Save Interests</button>
+                <!-- Avatar Selection -->
+                <section class="setup-section">
+                    <h3>Choose Your Avatar</h3>
+                    <div id="avatar-grid" class="avatar-grid"></div>
+                </section>
+
+                <!-- Interests Selection -->
+                <section class="setup-section">
+                    <h3>Select Your Interests</h3>
+                    <p class="section-subtitle">Choose at least 10</p>
+                    <div id="interests-count" class="interests-count">0 selected</div>
+                    <div id="interests-grid" class="interests-grid"></div>
+                </section>
+
+                <button id="save-interests-btn" class="btn btn-primary btn-full" disabled>Save Profile</button>
             </div>
         </div>
 
@@ -83,7 +72,7 @@
         <div id="main-screen" class="screen">
             <header class="screen-header">
                 <div class="header-top">
-                    <div class="logo">3PM</div>
+                    <div class="logo">Three People Meet</div>
                     <button id="profile-btn" class="btn btn-icon">
                         <span class="icon-profile">👤</span>
                     </button>
@@ -112,6 +101,14 @@
                     <div class="form-group">
                         <label for="group-name">Group Name</label>
                         <input type="text" id="group-name" required placeholder="e.g., Book Club Friends">
+                    </div>
+                    <div class="form-group">
+                        <label>Group Icon</label>
+                        <div id="group-icon-grid" class="group-icon-grid"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>Group Color</label>
+                        <div id="group-color-grid" class="group-color-grid"></div>
                     </div>
                     <button type="submit" class="btn btn-primary btn-full">Create Group</button>
                 </form>
@@ -163,6 +160,17 @@
                         <button id="generate-pairings-btn" class="btn btn-primary btn-full">Generate New Pairings</button>
                         <button id="view-all-pairings-btn" class="btn btn-secondary btn-full">View All Pairings</button>
                         <button id="trigger-reveal-btn" class="btn btn-accent btn-full">Dramatic Reveal!</button>
+                    </div>
+                    <div class="group-settings">
+                        <h4>Group Appearance</h4>
+                        <div class="form-group">
+                            <label>Icon</label>
+                            <div id="edit-group-icon-grid" class="group-icon-grid"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Color</label>
+                            <div id="edit-group-color-grid" class="group-color-grid"></div>
+                        </div>
                     </div>
                 </section>
 
@@ -227,6 +235,10 @@
                     <h3 id="profile-name">User Name</h3>
                     <p id="profile-email">user@email.com</p>
                 </div>
+                <section class="section">
+                    <h4>Change Avatar</h4>
+                    <div id="profile-avatar-grid" class="avatar-grid"></div>
+                </section>
                 <section class="section">
                     <h4>Your Interests</h4>
                     <div id="profile-interests" class="interests-tags"></div>

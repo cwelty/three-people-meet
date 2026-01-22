@@ -3,16 +3,23 @@
 const Auth = {
     currentUser: null,
     userData: null,
+    googleProvider: null,
 
     // Initialize auth listener
     init() {
+        console.log('Auth.init() called');
+        Auth.googleProvider = new firebase.auth.GoogleAuthProvider();
+
         auth.onAuthStateChanged(async (user) => {
+            console.log('onAuthStateChanged fired, user:', user);
             Auth.currentUser = user;
             if (user) {
                 await Auth.loadUserData(user.uid);
+                console.log('User data loaded, calling App.onAuthStateChanged(true)');
                 App.onAuthStateChanged(true);
             } else {
                 Auth.userData = null;
+                console.log('No user, calling App.onAuthStateChanged(false)');
                 App.onAuthStateChanged(false);
             }
         });
@@ -33,37 +40,34 @@ const Auth = {
         }
     },
 
-    // Register new user
-    async register(email, password, displayName) {
+    // Sign in with Google
+    async signInWithGoogle() {
         try {
-            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-            const user = userCredential.user;
+            const result = await auth.signInWithPopup(Auth.googleProvider);
+            const user = result.user;
 
-            // Create user document in Firestore
-            await db.collection('users').doc(user.uid).set({
-                email: email,
-                displayName: displayName,
-                interests: [],
-                groupIds: [],
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            // Check if user document exists
+            const userDoc = await db.collection('users').doc(user.uid).get();
+
+            if (!userDoc.exists) {
+                // Create user document for new users
+                await db.collection('users').doc(user.uid).set({
+                    email: user.email,
+                    displayName: user.displayName || user.email.split('@')[0],
+                    interests: [],
+                    groupIds: [],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
 
             await Auth.loadUserData(user.uid);
             return { success: true };
         } catch (error) {
-            console.error('Registration error:', error);
-            return { success: false, error: Auth.getErrorMessage(error.code) };
-        }
-    },
-
-    // Login user
-    async login(email, password) {
-        try {
-            await auth.signInWithEmailAndPassword(email, password);
-            return { success: true };
-        } catch (error) {
-            console.error('Login error:', error);
-            return { success: false, error: Auth.getErrorMessage(error.code) };
+            console.error('Google sign-in error:', error);
+            if (error.code === 'auth/popup-closed-by-user') {
+                return { success: false, error: 'Sign-in was cancelled.' };
+            }
+            return { success: false, error: error.message };
         }
     },
 
@@ -74,6 +78,22 @@ const Auth = {
             return { success: true };
         } catch (error) {
             console.error('Logout error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Save user avatar
+    async saveAvatar(avatar) {
+        if (!Auth.currentUser) return { success: false, error: 'Not logged in' };
+
+        try {
+            await db.collection('users').doc(Auth.currentUser.uid).update({
+                avatar: avatar
+            });
+            Auth.userData.avatar = avatar;
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving avatar:', error);
             return { success: false, error: error.message };
         }
     },
@@ -94,24 +114,26 @@ const Auth = {
         }
     },
 
-    // Check if user has completed interests setup
-    hasInterests() {
-        return Auth.userData && Auth.userData.interests && Auth.userData.interests.length === 10;
+    // Save both avatar and interests (for initial setup)
+    async saveProfile(avatar, interests) {
+        if (!Auth.currentUser) return { success: false, error: 'Not logged in' };
+
+        try {
+            await db.collection('users').doc(Auth.currentUser.uid).update({
+                avatar: avatar,
+                interests: interests
+            });
+            Auth.userData.avatar = avatar;
+            Auth.userData.interests = interests;
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving profile:', error);
+            return { success: false, error: error.message };
+        }
     },
 
-    // Get user-friendly error messages
-    getErrorMessage(errorCode) {
-        const messages = {
-            'auth/email-already-in-use': 'This email is already registered.',
-            'auth/invalid-email': 'Please enter a valid email address.',
-            'auth/operation-not-allowed': 'Email/password accounts are not enabled.',
-            'auth/weak-password': 'Password should be at least 6 characters.',
-            'auth/user-disabled': 'This account has been disabled.',
-            'auth/user-not-found': 'No account found with this email.',
-            'auth/wrong-password': 'Incorrect password.',
-            'auth/invalid-credential': 'Invalid email or password.',
-            'auth/too-many-requests': 'Too many attempts. Please try again later.'
-        };
-        return messages[errorCode] || 'An error occurred. Please try again.';
+    // Check if user has completed interests setup
+    hasInterests() {
+        return Auth.userData && Auth.userData.interests && Auth.userData.interests.length >= 10;
     }
 };

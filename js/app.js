@@ -3,61 +3,99 @@
 const App = {
     currentGroupId: null,
 
+    // Animal emoji avatars
+    avatars: [
+        '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼',
+        '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔',
+        '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺',
+        '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞',
+        '🐙', '🦑', '🦐', '🦀', '🐡', '🐠', '🐟', '🐬',
+        '🐳', '🦈', '🐊', '🐢', '🦎', '🐍', '🦖', '🦕'
+    ],
+
+    selectedAvatar: null,
+
+    // Group icons (landscape/location themed)
+    groupIcons: [
+        '🏠', '🏡', '🏘️', '🏰', '🏯', '⛪', '🕌', '🛕',
+        '⛩️', '🏛️', '🏗️', '🏢', '🏬', '🏭', '🏪', '🏫',
+        '⛰️', '🏔️', '🗻', '🌋', '🏕️', '🏖️', '🏜️', '🏝️',
+        '🌲', '🌳', '🌴', '🌵', '🌾', '🌿', '🍀', '🌺',
+        '🌸', '🌼', '🌻', '🌹', '🪻', '💐', '🪴', '🎋',
+        '🌅', '🌄', '🌇', '🌆', '🌃', '🌉', '🎡', '🎢',
+        '⛺', '🛖', '🏚️', '🗼', '🗽', '⛲', '🌊', '🏞️'
+    ],
+
+    // Group colors
+    groupColors: [
+        '#E07A5F', // Coral (primary)
+        '#81B29A', // Sage green
+        '#F2CC8F', // Warm yellow
+        '#3D405B', // Dark blue-gray
+        '#9B5DE5', // Purple
+        '#F15BB5', // Pink
+        '#00BBF9', // Blue
+        '#00F5D4', // Teal
+        '#FEE440', // Yellow
+        '#FF6B6B', // Red
+        '#4ECDC4', // Turquoise
+        '#45B7D1'  // Sky blue
+    ],
+
+    selectedGroupIcon: null,
+    selectedGroupColor: null,
+
     // Predefined interests list
     interests: [
         // Outdoors & Nature
-        'Hiking', 'Camping', 'Nature', 'Gardening', 'Fishing', 'Beach', 'Mountains', 'Cycling', 'Running', 'Walking',
+        'Hiking', 'Camping', 'Nature', 'Gardening', 'Fishing', 'Beach', 'Mountains', 'Cycling', 'Running', 'Walking', 'Road Trips',
         // Food & Drink
-        'Cooking', 'Baking', 'Restaurants', 'Coffee', 'Wine', 'Food', 'Brunch', 'Sushi', 'Pizza', 'Vegetarian',
+        'Cooking', 'Baking', 'Restaurants', 'Coffee', 'Matcha', 'Tea', 'Wine', 'Beer', 'Food', 'Brunch', 'Sushi', 'Tacos', 'Pizza', 'Vegetarian', 'Healthy Eating',
         // Creative
-        'Art', 'Music', 'Photography', 'Drawing', 'Painting', 'Crafts', 'Design', 'Writing', 'Poetry', 'Theater',
+        'Art', 'Music', 'Photography', 'Drawing', 'Painting', 'Crafts', 'Design', 'Writing', 'Poetry', 'Theater', 'DJing', 'Songwriting',
         // Active
-        'Sports', 'Fitness', 'Yoga', 'Gym', 'Swimming', 'Basketball', 'Soccer', 'Tennis', 'Golf', 'Dancing',
+        'Sports', 'Fitness', 'Yoga', 'Gym', 'Swimming', 'Basketball', 'Soccer', 'Tennis', 'Golf', 'Dancing', 'Volleyball', 'Disc Golf', 'Rock Climbing',
         // Social & Entertainment
         'Games', 'Movies', 'Trivia', 'Karaoke', 'Comedy', 'Concerts', 'Festivals', 'Parties', 'Travel', 'Volunteering',
         // Learning & Intellectual
         'Reading', 'Technology', 'Languages', 'Science', 'History', 'Books', 'Podcasts', 'Documentaries', 'Philosophy', 'Psychology',
         // Lifestyle
-        'Meditation', 'Pets', 'Fashion', 'Sustainability', 'DIY', 'Cars', 'Anime', 'Gaming', 'Collectibles', 'Investing'
+        'Meditation', 'Pets', 'Cats', 'Dogs', 'Fashion', 'Sustainability', 'DIY', 'Cars', 'Anime', 'Gaming', 'Collectibles', 'Investing', 'Dominion', 'Pokemon Cards'
     ],
 
     selectedInterests: [],
 
     // Initialize the app
     init() {
+        console.log('App.init() called');
         Auth.init();
         App.setupEventListeners();
+        console.log('App.init() complete');
     },
 
     // Handle auth state changes
     onAuthStateChanged(isLoggedIn) {
+        console.log('App.onAuthStateChanged called with:', isLoggedIn);
         if (isLoggedIn) {
             if (!Auth.hasInterests()) {
+                console.log('Showing interests screen');
                 App.showScreen('interests-screen');
+                App.renderAvatarGrid('avatar-grid');
                 App.renderInterestsGrid();
             } else {
+                console.log('Showing main screen');
                 App.showMainScreen();
             }
         } else {
+            console.log('Showing auth screen');
             App.showScreen('auth-screen');
         }
     },
 
     // Setup all event listeners
     setupEventListeners() {
-        // Auth forms
-        document.getElementById('login-form').addEventListener('submit', App.handleLogin);
-        document.getElementById('register-form').addEventListener('submit', App.handleRegister);
-        document.getElementById('show-register').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('login-form').classList.add('hidden');
-            document.getElementById('register-form').classList.remove('hidden');
-        });
-        document.getElementById('show-login').addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('register-form').classList.add('hidden');
-            document.getElementById('login-form').classList.remove('hidden');
-        });
+        // Google Sign-In
+        document.getElementById('google-sign-in-btn').addEventListener('click', App.handleGoogleSignIn);
 
         // Interests
         document.getElementById('save-interests-btn').addEventListener('click', App.handleSaveInterests);
@@ -95,7 +133,9 @@ const App = {
         // Profile screen
         document.getElementById('back-from-profile').addEventListener('click', () => App.showMainScreen());
         document.getElementById('edit-interests-btn').addEventListener('click', () => {
-            App.selectedInterests = [...Auth.userData.interests];
+            App.selectedAvatar = Auth.userData.avatar || null;
+            App.selectedInterests = [...(Auth.userData.interests || [])];
+            App.renderAvatarGrid('avatar-grid');
             App.renderInterestsGrid();
             App.showScreen('interests-screen');
         });
@@ -109,17 +149,43 @@ const App = {
 
     // Screen management
     showScreen(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
+        console.log('showScreen called with:', screenId);
+        const screens = document.querySelectorAll('.screen');
+        console.log('Found screens:', screens.length);
+        screens.forEach(s => {
+            console.log('Removing active from:', s.id);
+            s.classList.remove('active');
+        });
+        const targetScreen = document.getElementById(screenId);
+        console.log('Target screen element:', targetScreen);
+        if (targetScreen) {
+            targetScreen.classList.add('active');
+            console.log('Added active class to:', screenId);
+        } else {
+            console.error('Screen not found:', screenId);
+        }
     },
 
     // Modal management
     showModal(modalId) {
-        document.getElementById(modalId).classList.add('active');
+        const modal = document.getElementById(modalId);
+        modal.classList.remove('hidden');
+        modal.classList.add('active');
+
+        // Initialize group icon/color grids for create modal
+        if (modalId === 'create-group-modal') {
+            App.selectedGroupIcon = App.groupIcons[0];
+            App.selectedGroupColor = App.groupColors[0];
+            App.renderGroupIconGrid('group-icon-grid');
+            App.renderGroupColorGrid('group-color-grid');
+        }
     },
 
     hideModals() {
-        document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+        document.querySelectorAll('.modal').forEach(m => {
+            m.classList.remove('active');
+            m.classList.add('hidden');
+        });
     },
 
     // Toast notifications
@@ -134,24 +200,24 @@ const App = {
     },
 
     // Auth handlers
-    async handleLogin(e) {
-        e.preventDefault();
-        const email = document.getElementById('login-email').value;
-        const password = document.getElementById('login-password').value;
+    async handleGoogleSignIn() {
+        const btn = document.getElementById('google-sign-in-btn');
+        btn.disabled = true;
+        btn.textContent = 'Signing in...';
 
-        const result = await Auth.login(email, password);
-        if (!result.success) {
-            App.showAuthError(result.error);
-        }
-    },
+        const result = await Auth.signInWithGoogle();
 
-    async handleRegister(e) {
-        e.preventDefault();
-        const name = document.getElementById('register-name').value;
-        const email = document.getElementById('register-email').value;
-        const password = document.getElementById('register-password').value;
+        btn.disabled = false;
+        btn.innerHTML = `
+            <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
+                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+            </svg>
+            Continue with Google
+        `;
 
-        const result = await Auth.register(email, password, name);
         if (!result.success) {
             App.showAuthError(result.error);
         }
@@ -168,6 +234,129 @@ const App = {
         await Auth.logout();
         Groups.cleanup();
         Reveal.cleanup();
+    },
+
+    // Avatar selection
+    renderAvatarGrid(gridId) {
+        const grid = document.getElementById(gridId);
+        const currentAvatar = Auth.userData?.avatar || App.selectedAvatar;
+
+        grid.innerHTML = App.avatars.map(avatar => `
+            <div class="avatar-option ${currentAvatar === avatar ? 'selected' : ''}" data-avatar="${avatar}">
+                ${avatar}
+            </div>
+        `).join('');
+
+        // Add click handlers
+        grid.querySelectorAll('.avatar-option').forEach(option => {
+            option.addEventListener('click', () => App.selectAvatar(option, gridId));
+        });
+    },
+
+    selectAvatar(option, gridId) {
+        const avatar = option.dataset.avatar;
+        App.selectedAvatar = avatar;
+
+        // Update UI
+        const grid = document.getElementById(gridId);
+        grid.querySelectorAll('.avatar-option').forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+
+        // If on profile screen, save immediately
+        if (gridId === 'profile-avatar-grid') {
+            App.saveAvatar(avatar);
+        }
+
+        // Update validation
+        App.updateSaveButtonState();
+    },
+
+    async saveAvatar(avatar) {
+        const result = await Auth.saveAvatar(avatar);
+        if (result.success) {
+            document.getElementById('profile-avatar').textContent = avatar;
+            App.showToast('Avatar updated!', 'success');
+        }
+    },
+
+    updateSaveButtonState() {
+        const count = App.selectedInterests.length;
+        const hasAvatar = App.selectedAvatar !== null;
+        document.getElementById('save-interests-btn').disabled = count < 10 || !hasAvatar;
+    },
+
+    // Group icon and color selection
+    renderGroupIconGrid(gridId, currentIcon = null) {
+        const grid = document.getElementById(gridId);
+        const selected = currentIcon || App.selectedGroupIcon;
+
+        grid.innerHTML = App.groupIcons.map(icon => `
+            <div class="group-icon-option ${selected === icon ? 'selected' : ''}" data-icon="${icon}">
+                ${icon}
+            </div>
+        `).join('');
+
+        grid.querySelectorAll('.group-icon-option').forEach(option => {
+            option.addEventListener('click', () => App.selectGroupIcon(option, gridId));
+        });
+    },
+
+    selectGroupIcon(option, gridId) {
+        const icon = option.dataset.icon;
+        App.selectedGroupIcon = icon;
+
+        const grid = document.getElementById(gridId);
+        grid.querySelectorAll('.group-icon-option').forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+
+        // If editing existing group, save immediately
+        if (gridId === 'edit-group-icon-grid' && App.currentGroupId) {
+            App.saveGroupAppearance();
+        }
+    },
+
+    renderGroupColorGrid(gridId, currentColor = null) {
+        const grid = document.getElementById(gridId);
+        const selected = currentColor || App.selectedGroupColor;
+
+        grid.innerHTML = App.groupColors.map(color => `
+            <div class="group-color-option ${selected === color ? 'selected' : ''}"
+                 data-color="${color}"
+                 style="background-color: ${color}">
+            </div>
+        `).join('');
+
+        grid.querySelectorAll('.group-color-option').forEach(option => {
+            option.addEventListener('click', () => App.selectGroupColor(option, gridId));
+        });
+    },
+
+    selectGroupColor(option, gridId) {
+        const color = option.dataset.color;
+        App.selectedGroupColor = color;
+
+        const grid = document.getElementById(gridId);
+        grid.querySelectorAll('.group-color-option').forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+
+        // If editing existing group, save immediately
+        if (gridId === 'edit-group-color-grid' && App.currentGroupId) {
+            App.saveGroupAppearance();
+        }
+    },
+
+    async saveGroupAppearance() {
+        if (!App.currentGroupId) return;
+
+        const result = await Groups.updateGroupAppearance(
+            App.currentGroupId,
+            App.selectedGroupIcon,
+            App.selectedGroupColor
+        );
+
+        if (result.success) {
+            App.showToast('Group appearance updated!', 'success');
+        }
     },
 
     // Interests
@@ -194,7 +383,7 @@ const App = {
         if (App.selectedInterests.includes(interest)) {
             App.selectedInterests = App.selectedInterests.filter(i => i !== interest);
             chip.classList.remove('selected');
-        } else if (App.selectedInterests.length < 10) {
+        } else {
             App.selectedInterests.push(interest);
             chip.classList.add('selected');
         }
@@ -204,16 +393,16 @@ const App = {
 
     updateInterestsCount() {
         const count = App.selectedInterests.length;
-        document.getElementById('interests-count').textContent = `${count} / 10 selected`;
-        document.getElementById('save-interests-btn').disabled = count !== 10;
+        document.getElementById('interests-count').textContent = `${count} selected`;
+        App.updateSaveButtonState();
     },
 
     async handleSaveInterests() {
-        if (App.selectedInterests.length !== 10) return;
+        if (App.selectedInterests.length < 10 || !App.selectedAvatar) return;
 
-        const result = await Auth.saveInterests(App.selectedInterests);
+        const result = await Auth.saveProfile(App.selectedAvatar, App.selectedInterests);
         if (result.success) {
-            App.showToast('Interests saved!', 'success');
+            App.showToast('Profile saved!', 'success');
             App.showMainScreen();
         } else {
             App.showToast('Error saving interests', 'error');
@@ -229,8 +418,19 @@ const App = {
 
     updateProfileDisplay() {
         if (Auth.userData) {
+            const avatar = Auth.userData.avatar || '👤';
             document.getElementById('profile-name').textContent = Auth.userData.displayName || 'User';
             document.getElementById('profile-email').textContent = Auth.userData.email;
+            document.getElementById('profile-avatar').textContent = avatar;
+
+            // Update header profile button with avatar
+            const profileBtn = document.querySelector('#profile-btn .icon-profile');
+            if (profileBtn) {
+                profileBtn.textContent = avatar;
+            }
+
+            // Render avatar grid for profile
+            App.renderAvatarGrid('profile-avatar-grid');
 
             const interestsTags = document.getElementById('profile-interests');
             if (Auth.userData.interests && Auth.userData.interests.length > 0) {
@@ -252,12 +452,21 @@ const App = {
             noGroups.classList.remove('hidden');
         } else {
             noGroups.classList.add('hidden');
-            list.innerHTML = groups.map(group => `
-                <div class="group-card" data-group-id="${group.id}">
-                    <h3>${group.name}</h3>
-                    <p class="member-count">${group.memberIds.length} member${group.memberIds.length !== 1 ? 's' : ''}</p>
-                </div>
-            `).join('');
+            list.innerHTML = groups.map(group => {
+                const icon = group.icon || '🏠';
+                const color = group.color || '#E07A5F';
+                return `
+                    <div class="group-card" data-group-id="${group.id}" style="border-left: 6px solid ${color}">
+                        <div class="group-card-header">
+                            <span class="group-icon" style="background-color: ${color}30">${icon}</span>
+                            <div class="group-card-info">
+                                <h3>${group.name}</h3>
+                                <p class="member-count">${group.memberIds.length} member${group.memberIds.length !== 1 ? 's' : ''}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
 
             // Add click handlers
             list.querySelectorAll('.group-card').forEach(card => {
@@ -270,8 +479,10 @@ const App = {
     async handleCreateGroup(e) {
         e.preventDefault();
         const name = document.getElementById('group-name').value;
+        const icon = App.selectedGroupIcon || App.groupIcons[0];
+        const color = App.selectedGroupColor || App.groupColors[0];
 
-        const result = await Groups.createGroup(name);
+        const result = await Groups.createGroup(name, icon, color);
         if (result.success) {
             App.hideModals();
             document.getElementById('group-name').value = '';
@@ -336,6 +547,11 @@ const App = {
         const creatorControls = document.getElementById('creator-controls');
         if (Groups.isCreator(group)) {
             creatorControls.classList.remove('hidden');
+            // Initialize group appearance editors
+            App.selectedGroupIcon = group.icon || App.groupIcons[0];
+            App.selectedGroupColor = group.color || App.groupColors[0];
+            App.renderGroupIconGrid('edit-group-icon-grid', App.selectedGroupIcon);
+            App.renderGroupColorGrid('edit-group-color-grid', App.selectedGroupColor);
         } else {
             creatorControls.classList.add('hidden');
         }
@@ -366,6 +582,7 @@ const App = {
     async loadGroupMembers(groupId) {
         const members = await Groups.getGroupMembers(groupId);
         const group = Groups.currentGroup;
+        const groupColor = group.color || '#E07A5F';
 
         document.getElementById('member-count').textContent = members.length;
 
@@ -374,7 +591,7 @@ const App = {
             const isCreator = group.creatorIds && group.creatorIds.includes(member.id);
             return `
                 <div class="member-item">
-                    <div class="member-avatar">${App.getInitials(member.displayName)}</div>
+                    <div class="member-avatar" style="background-color: ${groupColor}40">${App.getMemberAvatar(member)}</div>
                     <span class="member-name">${member.displayName}</span>
                     ${isCreator ? '<span class="member-badge">Creator</span>' : ''}
                 </div>
@@ -402,7 +619,7 @@ const App = {
             <div class="pairing-members">
                 ${pairingMembers.map(m => `
                     <div class="pairing-member">
-                        <div class="member-avatar">${App.getInitials(m.displayName)}</div>
+                        <div class="member-avatar">${App.getMemberAvatar(m)}</div>
                         <div class="member-name">${m.displayName}</div>
                     </div>
                 `).join('')}
@@ -476,6 +693,7 @@ const App = {
 
         const pairings = await Pairing.getRoundPairings(App.currentGroupId, latestRound);
         const members = Groups.groupMembers;
+        const groupColor = Groups.currentGroup?.color || '#E07A5F';
 
         document.getElementById('current-round').textContent = latestRound;
 
@@ -488,7 +706,7 @@ const App = {
                     <div class="pairing-members">
                         ${pairingMembers.map(m => `
                             <div class="pairing-member">
-                                <div class="member-avatar">${App.getInitials(m.displayName)}</div>
+                                <div class="member-avatar" style="background-color: ${groupColor}40">${App.getMemberAvatar(m)}</div>
                                 <div class="member-name">${m.displayName}</div>
                             </div>
                         `).join('')}
@@ -520,6 +738,10 @@ const App = {
             return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
         }
         return name.substring(0, 2).toUpperCase();
+    },
+
+    getMemberAvatar(member) {
+        return member.avatar || App.getInitials(member.displayName);
     }
 };
 

@@ -81,7 +81,7 @@ body {
 }
 
 /* Loading Screen */
-#loading-screen {
+#loading-screen.active {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,7 +93,7 @@ body {
 }
 
 .logo-large {
-    font-size: 4rem;
+    font-size: 2rem;
     font-weight: 700;
     color: var(--primary);
     margin-bottom: var(--spacing-lg);
@@ -114,7 +114,7 @@ body {
 }
 
 /* Auth Screen */
-#auth-screen {
+#auth-screen.active {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -151,6 +151,51 @@ body {
     margin-top: var(--spacing-md);
     color: var(--text-medium);
     font-size: 0.9rem;
+}
+
+.forgot-password {
+    text-align: center;
+    margin-top: var(--spacing-md);
+    font-size: 0.85rem;
+}
+
+.forgot-password a {
+    color: var(--text-medium);
+    text-decoration: none;
+}
+
+.forgot-password a:hover {
+    color: var(--primary);
+}
+
+.form-description {
+    color: var(--text-medium);
+    margin-bottom: var(--spacing-lg);
+    font-size: 0.9rem;
+}
+
+.btn-google {
+    background: var(--bg-white);
+    color: var(--text-dark);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}
+
+.btn-google:hover {
+    border-color: var(--text-light);
+    background: var(--bg-cream);
+}
+
+.btn-google:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.google-icon {
+    flex-shrink: 0;
 }
 
 .auth-switch a {
@@ -290,7 +335,7 @@ body {
 }
 
 .logo {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--primary);
 }
@@ -308,6 +353,54 @@ body {
 /* Interests Screen */
 .interests-container {
     padding-bottom: var(--spacing-xl);
+}
+
+/* Setup sections */
+.setup-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.setup-section h3 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-dark);
+}
+
+.section-subtitle {
+    color: var(--text-medium);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+/* Avatar Grid */
+.avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.avatar-option {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    background: var(--bg-white);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.avatar-option:hover {
+    border-color: var(--primary-light);
+    transform: scale(1.1);
+}
+
+.avatar-option.selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: var(--shadow-md);
 }
 
 .interests-count {
@@ -381,6 +474,28 @@ body {
     transform: translateY(-2px);
 }
 
+.group-card-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+}
+
+.group-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.group-card-info {
+    flex: 1;
+    min-width: 0;
+}
+
 .group-card h3 {
     font-size: 1.1rem;
     margin-bottom: var(--spacing-xs);
@@ -389,6 +504,72 @@ body {
 .group-card .member-count {
     color: var(--text-medium);
     font-size: 0.9rem;
+}
+
+/* Group Icon Grid */
+.group-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: var(--spacing-xs);
+}
+
+.group-icon-option {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    background: var(--bg-cream);
+    border: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.group-icon-option:hover {
+    background: var(--bg-white);
+    border-color: var(--primary-light);
+}
+
+.group-icon-option.selected {
+    border-color: var(--primary);
+    background: var(--bg-white);
+}
+
+/* Group Color Grid */
+.group-color-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--spacing-sm);
+}
+
+.group-color-option {
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 3px solid transparent;
+}
+
+.group-color-option:hover {
+    transform: scale(1.1);
+}
+
+.group-color-option.selected {
+    border-color: var(--text-dark);
+    box-shadow: var(--shadow-md);
+}
+
+/* Group Settings */
+.group-settings {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid var(--border);
+}
+
+.group-settings h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--text-dark);
 }
 
 .group-code {
@@ -525,6 +706,7 @@ body {
     align-items: center;
     justify-content: center;
     font-weight: 700;
+    font-size: 1.4rem;
     color: white;
 }
 
@@ -574,7 +756,7 @@ body {
 .pairing-member .member-avatar {
     width: 56px;
     height: 56px;
-    font-size: 1.25rem;
+    font-size: 1.75rem;
     margin-bottom: var(--spacing-xs);
     background: rgba(255, 255, 255, 0.3);
 }
@@ -721,8 +903,15 @@ body {
     color: var(--text-medium);
 }
 
+#edit-interests-btn {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.9rem;
+    min-height: auto;
+}
+
 /* Reveal Screen */
-#reveal-screen {
+#reveal-screen.active {
     background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     display: flex;
     align-items: center;
@@ -827,7 +1016,7 @@ body {
 .reveal-member .member-avatar {
     width: 56px;
     height: 56px;
-    font-size: 1.25rem;
+    font-size: 1.75rem;
     margin-bottom: var(--spacing-xs);
 }
 

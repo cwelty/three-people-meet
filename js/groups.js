@@ -16,7 +16,7 @@ const Groups = {
     },
 
     // Create a new group
-    async createGroup(name) {
+    async createGroup(name, icon = '🏠', color = '#E07A5F') {
         if (!Auth.currentUser) return { success: false, error: 'Not logged in' };
 
         const code = Groups.generateCode();
@@ -27,13 +27,15 @@ const Groups = {
             const existing = await db.collection('groups').where('code', '==', code).get();
             if (!existing.empty) {
                 // Regenerate code if collision (very rare)
-                return Groups.createGroup(name);
+                return Groups.createGroup(name, icon, color);
             }
 
             // Create group document
             const groupRef = await db.collection('groups').add({
                 name: name,
                 code: code,
+                icon: icon,
+                color: color,
                 creatorIds: [userId],
                 memberIds: [userId],
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -95,6 +97,34 @@ const Groups = {
             return { success: true, groupId: groupDoc.id, groupName: groupData.name };
         } catch (error) {
             console.error('Error joining group:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Update group appearance (icon and color) - creators only
+    async updateGroupAppearance(groupId, icon, color) {
+        if (!Auth.currentUser) return { success: false, error: 'Not logged in' };
+
+        try {
+            const group = await Groups.getGroup(groupId);
+            if (!group || !Groups.isCreator(group)) {
+                return { success: false, error: 'Only creators can update group appearance.' };
+            }
+
+            await db.collection('groups').doc(groupId).update({
+                icon: icon,
+                color: color
+            });
+
+            // Update local group data
+            if (Groups.currentGroup) {
+                Groups.currentGroup.icon = icon;
+                Groups.currentGroup.color = color;
+            }
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error updating group appearance:', error);
             return { success: false, error: error.message };
         }
     },
