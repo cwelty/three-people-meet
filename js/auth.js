@@ -31,12 +31,38 @@ const Auth = {
             const doc = await db.collection('users').doc(userId).get();
             if (doc.exists) {
                 Auth.userData = { id: doc.id, ...doc.data() };
+                // Clean up any invalid interests
+                await Auth.cleanupInvalidInterests();
             } else {
                 Auth.userData = null;
             }
         } catch (error) {
             console.error('Error loading user data:', error);
             Auth.userData = null;
+        }
+    },
+
+    // Remove interests that are no longer in the valid list
+    async cleanupInvalidInterests() {
+        if (!Auth.userData || !Auth.userData.interests || !App.interests) return;
+
+        const validSet = new Set(App.interests);
+        const currentInterests = Auth.userData.interests;
+        const validInterests = currentInterests.filter(i => validSet.has(i));
+
+        // Only update if some interests were removed
+        if (validInterests.length < currentInterests.length) {
+            const removed = currentInterests.filter(i => !validSet.has(i));
+            console.log('Removing invalid interests:', removed);
+
+            try {
+                await db.collection('users').doc(Auth.currentUser.uid).update({
+                    interests: validInterests
+                });
+                Auth.userData.interests = validInterests;
+            } catch (error) {
+                console.error('Error cleaning up interests:', error);
+            }
         }
     },
 
