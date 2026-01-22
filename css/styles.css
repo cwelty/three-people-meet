@@ -933,7 +933,8 @@ body {
 .avatar-pagination {
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    justify-content: center;
+    gap: var(--spacing-md);
 }
 
 .avatar-nav-btn {
@@ -967,10 +968,9 @@ body {
 
 .avatar-grid-inner {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(6, minmax(0, 48px));
     gap: var(--spacing-xs);
-    flex: 1;
-    margin: 0 var(--spacing-sm);
+    justify-content: center;
 }
 
 .avatar-page-indicator {
