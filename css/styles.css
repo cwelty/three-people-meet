@@ -1,4 +1,4 @@
-/* Three People Meet - Warm & Friendly Mobile-First Design */
+/* ThreePeopleMeet - Warm & Friendly Mobile-First Design */
 
 :root {
     /* Warm color palette */
@@ -878,8 +878,13 @@ body {
 
 .groups-header {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
+}
+
+.groups-header h2 {
+    margin: 0;
+    padding: 0;
 }
 
 .groups-header-actions {
@@ -894,7 +899,7 @@ body {
 
 .btn-sm {
     padding: 0 var(--spacing-sm);
-    font-size: 0.75rem;
+    font-size: 0.85rem;
     height: 1.5rem;
     line-height: 1.5rem;
 }
@@ -1053,6 +1058,23 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
+}
+
+.tagline-quote {
+    position: fixed;
+    bottom: 28px;
+    left: 20px;
+    right: 80px;
+    font-family: 'Dancing Script', cursive;
+    font-size: clamp(0.75rem, 3vw, 1.1rem);
+    color: var(--primary);
+    font-style: italic;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    z-index: 200;
+    white-space: nowrap;
+    text-shadow: -0.5px -0.5px 0 white, 0.5px -0.5px 0 white, -0.5px 0.5px 0 white, 0.5px 0.5px 0 white;
 }
 
 .group-card {

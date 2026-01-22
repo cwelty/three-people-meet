@@ -1,4 +1,4 @@
-// Firebase Configuration for Three People Meet
+// Firebase Configuration for ThreePeopleMeet
 
 const firebaseConfig = {
     apiKey: "AIzaSyCX8RnL25mylpd7PJAPyE2fA4waEn6rd8E",

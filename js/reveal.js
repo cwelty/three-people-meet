@@ -1,4 +1,4 @@
-// Reveal Module for Three People Meet
+// Reveal Module for ThreePeopleMeet
 
 const Reveal = {
     isRevealing: false,

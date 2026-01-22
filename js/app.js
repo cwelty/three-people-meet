@@ -1,4 +1,4 @@
-// Main App Module for Three People Meet
+// Main App Module for ThreePeopleMeet
 
 const App = {
     currentGroupId: null,

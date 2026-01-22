@@ -1,4 +1,4 @@
-// Pairing Module for Three People Meet
+// Pairing Module for ThreePeopleMeet
 
 const Pairing = {
     // Get shared interests between members

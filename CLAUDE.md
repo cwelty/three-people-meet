@@ -1,4 +1,4 @@
-# Three People Meet
+# ThreePeopleMeet
 
 A mobile-optimized web app where users join groups, submit interests, and get paired in groups of 3 for meetups based on shared interests.
 

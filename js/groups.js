@@ -1,4 +1,4 @@
-// Groups Module for Three People Meet
+// Groups Module for ThreePeopleMeet
 
 const Groups = {
     currentGroup: null,

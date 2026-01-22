@@ -1,4 +1,4 @@
-// Authentication Module for Three People Meet
+// Authentication Module for ThreePeopleMeet
 
 const Auth = {
     currentUser: null,
