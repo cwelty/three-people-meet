@@ -1058,15 +1058,16 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-md);
+    padding-bottom: 120px;
 }
 
 .tagline-quote {
     position: fixed;
-    bottom: 28px;
+    bottom: 8px;
     left: 20px;
     right: 80px;
     font-family: 'Dancing Script', cursive;
-    font-size: clamp(0.75rem, 3vw, 1.1rem);
+    font-size: clamp(1rem, 4vw, 1.5rem);
     color: var(--primary);
     font-style: italic;
     text-align: center;
@@ -1392,19 +1393,25 @@ body {
     box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
 }
 
-.your-trio-label {
+.trio-label {
     position: absolute;
     top: -10px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--accent);
-    color: white;
+    background: var(--bg-medium);
+    color: var(--text-medium);
     font-size: 0.7rem;
     font-weight: 700;
     padding: 4px 12px;
     border-radius: var(--radius-full);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.trio-label.your-trio-label {
+    background: var(--accent);
+    color: white;
 }
 
 .pairing-card.no-pairing-card {
@@ -1483,9 +1490,91 @@ body {
     font-size: 0.8rem;
 }
 
+#reveal-interests .shared-tag {
+    background: var(--primary);
+    color: white;
+}
+
 .users-trio .shared-tag {
     background: rgba(255, 255, 255, 0.25);
     color: white;
+}
+
+/* Shared Interests Dropdown */
+.shared-interests-dropdown {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-md);
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.users-trio .shared-interests-dropdown {
+    border-top-color: rgba(255, 255, 255, 0.3);
+}
+
+.interests-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    width: 100%;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: transparent;
+    border: none;
+    color: var(--text-medium);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.interests-toggle:hover {
+    color: var(--text-dark);
+}
+
+.users-trio .interests-toggle {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.users-trio .interests-toggle:hover {
+    color: white;
+}
+
+.interests-toggle.small {
+    font-size: 0.75rem;
+    padding: var(--spacing-xs) 0;
+    justify-content: flex-start;
+}
+
+.toggle-arrow {
+    display: inline-block;
+    transition: transform 0.2s;
+    font-size: 1rem;
+}
+
+.shared-interests-dropdown.expanded .toggle-arrow {
+    transform: rotate(90deg);
+}
+
+.shared-interests-content {
+    display: none;
+    padding-top: var(--spacing-sm);
+}
+
+.shared-interests-dropdown.expanded .shared-interests-content {
+    display: block;
+}
+
+.shared-interests-content .shared-interests-tags {
+    justify-content: center;
+}
+
+.history-item .shared-interests-content {
+    display: none;
+}
+
+.history-item .shared-interests-dropdown.expanded .shared-interests-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
 }
 
 /* Creator Actions */
@@ -1635,9 +1724,24 @@ body {
 }
 
 .reveal-container {
+    position: relative;
     width: 100%;
     max-width: 400px;
     text-align: center;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: 70px; /* Reserve space for buttons */
+}
+
+#reveal-done-btn,
+#reveal-next-btn {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 160px;
 }
 
 .reveal-countdown {
@@ -1676,16 +1780,19 @@ body {
     margin-bottom: var(--spacing-lg);
 }
 
+.reveal-progress {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-md);
+}
+
 .reveal-card {
     perspective: 1000px;
-    height: 350px;
     margin-bottom: var(--spacing-lg);
 }
 
 .reveal-card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
+    display: grid;
     transition: transform 0.8s;
     transform-style: preserve-3d;
 }
@@ -1696,9 +1803,8 @@ body {
 
 .reveal-card-front,
 .reveal-card-back {
-    position: absolute;
+    grid-area: 1 / 1;
     width: 100%;
-    height: 100%;
     backface-visibility: hidden;
     border-radius: var(--radius-lg);
     display: flex;
@@ -1721,7 +1827,8 @@ body {
     background: var(--bg-white);
     transform: rotateY(180deg);
     justify-content: flex-start;
-    padding-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
 }
 
 .reveal-members {
@@ -1761,8 +1868,12 @@ body {
 }
 
 .reveal-interests {
-    margin-top: auto;
-    margin-bottom: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    max-height: 40vh;
+    overflow-y: auto;
+    width: 100%;
+    padding: 0 var(--spacing-md);
 }
 
 .reveal-interests h4 {

@@ -4,6 +4,11 @@ const Reveal = {
     isRevealing: false,
     unsubscribeReveal: null,
     seenRevealRound: null,
+    allPairings: [],
+    currentTrioIndex: 0,
+    groupColor: '#E07A5F',
+    groupMembers: [],
+    currentGroupId: null,
 
     // Trigger dramatic reveal for all group members
     async triggerReveal(groupId) {
@@ -73,78 +78,121 @@ const Reveal = {
     // Show reveal screen with countdown and card flip
     async showReveal(groupId, userId) {
         Reveal.isRevealing = true;
+        Reveal.currentGroupId = groupId;
+        Reveal.currentTrioIndex = 0;
 
-        // Get user's pairing for the reveal round
-        const pairing = await Pairing.getCurrentPairing(groupId, userId);
-        if (!pairing) {
-            App.showToast('No pairing found for this round', 'error');
+        // Get latest round
+        const latestRound = await Pairing.getLatestRound(groupId);
+        if (latestRound === 0) {
+            App.showToast('No pairings found for this round', 'error');
             Reveal.isRevealing = false;
             return;
         }
 
-        // Mark this round as seen so we don't show it again
-        Reveal.seenRevealRound = pairing.round;
+        // Get ALL pairings for this round
+        Reveal.allPairings = await Pairing.getRoundPairings(groupId, latestRound);
+        if (Reveal.allPairings.length === 0) {
+            App.showToast('No pairings found for this round', 'error');
+            Reveal.isRevealing = false;
+            return;
+        }
 
-        // Get group color
+        // Mark this round as seen
+        Reveal.seenRevealRound = latestRound;
+
+        // Get group color and members
         const group = Groups.currentGroup || await Groups.getGroup(groupId);
-        const groupColor = group?.color || '#E07A5F';
-
-        // Get member data
-        const members = await Groups.getGroupMembers(groupId);
-        const pairingMembers = pairing.members.map(memberId =>
-            members.find(m => m.id === memberId)
-        ).filter(m => m);
+        Reveal.groupColor = group?.color || '#E07A5F';
+        Reveal.groupMembers = await Groups.getGroupMembers(groupId);
 
         // Show reveal screen
         App.showScreen('reveal-screen');
+
+        // Start with first trio
+        Reveal.showTrioReveal(0);
+    },
+
+    // Show reveal for a specific trio
+    showTrioReveal(trioIndex) {
+        const pairing = Reveal.allPairings[trioIndex];
+        const totalTrios = Reveal.allPairings.length;
+
+        const pairingMembers = pairing.members.map(memberId =>
+            Reveal.groupMembers.find(m => m.id === memberId)
+        ).filter(m => m);
+
+        // Update title
+        document.getElementById('reveal-title').textContent = `Trio ${trioIndex + 1}!`;
+
+        // Update progress indicator
+        const progressEl = document.getElementById('reveal-progress');
+        progressEl.textContent = `${trioIndex + 1} of ${totalTrios}`;
+        progressEl.classList.add('hidden'); // Will show after card flip
 
         // Reset card state
         const revealCard = document.getElementById('reveal-card');
         revealCard.classList.remove('flipped');
 
-        // Show countdown
+        // Hide buttons
+        document.getElementById('reveal-next-btn').classList.add('hidden');
+        document.getElementById('reveal-done-btn').classList.add('hidden');
+
+        // Show countdown for first trio, skip for subsequent
         const countdownEl = document.getElementById('reveal-countdown');
         const countdownNumber = document.getElementById('countdown-number');
         const revealContent = document.getElementById('reveal-content');
 
-        countdownEl.classList.remove('hidden');
-        revealContent.classList.add('hidden');
+        if (trioIndex === 0) {
+            countdownEl.classList.remove('hidden');
+            revealContent.classList.add('hidden');
 
-        // Countdown animation
-        let count = 3;
-        countdownNumber.textContent = count;
+            // Countdown animation
+            let count = 3;
+            countdownNumber.textContent = count;
 
-        const countdownInterval = setInterval(() => {
-            count--;
-            if (count > 0) {
-                countdownNumber.textContent = count;
-            } else {
-                clearInterval(countdownInterval);
+            const countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countdownNumber.textContent = count;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownEl.classList.add('fade-out');
 
-                // Fade out countdown
-                countdownEl.classList.add('fade-out');
-
-                // After fade completes, show reveal content
-                setTimeout(() => {
-                    countdownEl.classList.add('hidden');
-                    countdownEl.classList.remove('fade-out');
-                    revealContent.classList.remove('hidden');
-
-                    // Populate reveal card (elements start hidden)
-                    Reveal.populateRevealCard(pairingMembers, pairing, groupColor);
-
-                    // Flip card after short delay
                     setTimeout(() => {
-                        revealCard.classList.add('flipped');
+                        countdownEl.classList.add('hidden');
+                        countdownEl.classList.remove('fade-out');
+                        revealContent.classList.remove('hidden');
+                        Reveal.flipAndRevealTrio(pairingMembers, pairing, trioIndex);
+                    }, 800);
+                }
+            }, 1000);
+        } else {
+            // For subsequent trios, just flip directly
+            revealContent.classList.remove('hidden');
+            Reveal.flipAndRevealTrio(pairingMembers, pairing, trioIndex);
+        }
+    },
 
-                        // Start sequential reveal after card flip
-                        setTimeout(() => {
-                            Reveal.animateSequentialReveal(pairingMembers.length, pairing.sharedInterests?.length || 0);
-                        }, 800);
-                    }, 500);
-                }, 800); // Wait for fade animation
-            }
-        }, 1000);
+    // Flip card and reveal trio members
+    flipAndRevealTrio(pairingMembers, pairing, trioIndex) {
+        const revealCard = document.getElementById('reveal-card');
+        const totalTrios = Reveal.allPairings.length;
+
+        // Populate reveal card
+        Reveal.populateRevealCard(pairingMembers, pairing, Reveal.groupColor);
+
+        // Flip card
+        setTimeout(() => {
+            revealCard.classList.add('flipped');
+
+            // Show progress indicator
+            document.getElementById('reveal-progress').classList.remove('hidden');
+
+            // Start sequential reveal
+            setTimeout(() => {
+                Reveal.animateSequentialReveal(pairingMembers.length, pairing.sharedInterests?.length || 0, trioIndex, totalTrios);
+            }, 800);
+        }, 500);
     },
 
     // Populate the reveal card with pairing data (elements start hidden)
@@ -176,10 +224,10 @@ const Reveal = {
     },
 
     // Animate sequential reveal of elements
-    animateSequentialReveal(memberCount, interestCount) {
+    animateSequentialReveal(memberCount, interestCount, trioIndex, totalTrios) {
         let delay = 0;
         const memberDelay = 2000; // 2 seconds between each person
-        const interestDelay = 2000; // 2 seconds between each interest
+        const interestsDelay = 3000; // 3 seconds for all interests together
 
         // Reveal members one at a time (left to right)
         const members = document.querySelectorAll('#reveal-members .reveal-member');
@@ -192,40 +240,45 @@ const Reveal = {
             delay += memberDelay;
         });
 
-        // Reveal "Shared Interests" header
+        // Reveal "Shared Interests" header and all tags together after 3 seconds
         const interestsHeader = document.querySelector('#reveal-interests h4');
-        if (interestsHeader) {
-            setTimeout(() => {
+        const interestTags = document.querySelectorAll('#reveal-interests .shared-tag');
+        const discoverMsg = document.querySelector('#reveal-interests p');
+
+        setTimeout(() => {
+            if (interestsHeader) {
                 interestsHeader.classList.remove('reveal-hidden');
                 interestsHeader.classList.add('reveal-animate');
-            }, delay);
-            delay += interestDelay;
-        }
-
-        // Reveal each interest tag one at a time
-        const interestTags = document.querySelectorAll('#reveal-interests .shared-tag');
-        interestTags.forEach((tag, i) => {
-            setTimeout(() => {
+            }
+            // Reveal all interest tags at once
+            interestTags.forEach(tag => {
                 tag.classList.remove('reveal-hidden');
                 tag.classList.add('reveal-animate');
-            }, delay);
-            delay += interestDelay;
-        });
-
-        // If no interests, reveal the "discover" message
-        const discoverMsg = document.querySelector('#reveal-interests p');
-        if (discoverMsg && discoverMsg.classList.contains('reveal-hidden')) {
-            setTimeout(() => {
+            });
+            // If no interests, reveal the "discover" message
+            if (discoverMsg && discoverMsg.classList.contains('reveal-hidden')) {
                 discoverMsg.classList.remove('reveal-hidden');
                 discoverMsg.classList.add('reveal-animate');
-            }, delay);
-            delay += interestDelay;
-        }
+            }
+        }, delay);
 
-        // Show continue button
+        // Show appropriate button based on whether more trios remain
         setTimeout(() => {
-            document.getElementById('reveal-done-btn').classList.remove('hidden');
-        }, delay + 500);
+            const isLastTrio = trioIndex >= totalTrios - 1;
+            if (isLastTrio) {
+                document.getElementById('reveal-done-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('reveal-next-btn').classList.remove('hidden');
+            }
+        }, delay + interestsDelay);
+    },
+
+    // Show next trio
+    showNextTrio() {
+        Reveal.currentTrioIndex++;
+        if (Reveal.currentTrioIndex < Reveal.allPairings.length) {
+            Reveal.showTrioReveal(Reveal.currentTrioIndex);
+        }
     },
 
     // Create sparkle particles around an element
@@ -239,11 +292,13 @@ const Reveal = {
             sparkle.className = 'floating-sparkle';
             sparkle.textContent = sparkleChars[Math.floor(Math.random() * sparkleChars.length)];
 
-            // Random position around the element
+            // Random position around the element (offset up and left to center on avatar)
             const angle = (i / 12) * Math.PI * 2;
             const distance = 30 + Math.random() * 40;
-            const x = rect.left + rect.width / 2 + Math.cos(angle) * distance - container.getBoundingClientRect().left;
-            const y = rect.top + rect.height / 2 + Math.sin(angle) * distance - container.getBoundingClientRect().top;
+            const centerX = rect.left + rect.width / 2 - 15; // Shift left
+            const centerY = rect.top + rect.height / 2 - 25; // Shift up
+            const x = centerX + Math.cos(angle) * distance - container.getBoundingClientRect().left;
+            const y = centerY + Math.sin(angle) * distance - container.getBoundingClientRect().top;
 
             sparkle.style.cssText = `
                 position: absolute;
@@ -280,5 +335,9 @@ const Reveal = {
         }
         Reveal.isRevealing = false;
         Reveal.seenRevealRound = null;
+        Reveal.allPairings = [];
+        Reveal.currentTrioIndex = 0;
+        Reveal.groupMembers = [];
+        Reveal.currentGroupId = null;
     }
 };

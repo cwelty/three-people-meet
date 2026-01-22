@@ -267,6 +267,11 @@ const App = {
         document.getElementById('reveal-done-btn').addEventListener('click', () => {
             Reveal.handleRevealDone(App.currentGroupId);
         });
+
+        // Reveal next trio
+        document.getElementById('reveal-next-btn').addEventListener('click', () => {
+            Reveal.showNextTrio();
+        });
     },
 
     // Screen management
@@ -827,13 +832,15 @@ const App = {
             html += '<p class="priority-message">You\'ll be paired first next round!</p>';
         }
 
-        allPairings.forEach(pairing => {
+        allPairings.forEach((pairing, index) => {
             const pairingMembers = pairing.members.map(id => members.find(m => m.id === id)).filter(m => m);
             const isUsersTrio = pairing.members.includes(currentUserId);
+            const trioLabel = isUsersTrio ? `Trio ${index + 1} (You)` : `Trio ${index + 1}`;
+            const interestCount = pairing.sharedInterests?.length || 0;
 
             html += `
                 <div class="pairing-card ${isUsersTrio ? 'users-trio' : ''}">
-                    ${isUsersTrio ? '<div class="your-trio-label">Your Trio</div>' : ''}
+                    <div class="trio-label ${isUsersTrio ? 'your-trio-label' : ''}">${trioLabel}</div>
                     <div class="pairing-members">
                         ${pairingMembers.map(m => `
                             <div class="pairing-member">
@@ -842,10 +849,16 @@ const App = {
                             </div>
                         `).join('')}
                     </div>
-                    ${pairing.sharedInterests && pairing.sharedInterests.length > 0 ? `
-                        <div class="shared-interests">
-                            <div class="shared-interests-tags">
-                                ${pairing.sharedInterests.map(i => `<span class="shared-tag">${i}</span>`).join('')}
+                    ${interestCount > 0 ? `
+                        <div class="shared-interests-dropdown">
+                            <button class="interests-toggle" onclick="this.parentElement.classList.toggle('expanded')">
+                                <span>${interestCount} shared interest${interestCount !== 1 ? 's' : ''}</span>
+                                <span class="toggle-arrow">›</span>
+                            </button>
+                            <div class="shared-interests-content">
+                                <div class="shared-interests-tags">
+                                    ${pairing.sharedInterests.map(i => `<span class="shared-tag">${i}</span>`).join('')}
+                                </div>
                             </div>
                         </div>
                     ` : ''}
@@ -871,14 +884,21 @@ const App = {
             const pairingMembers = pairing.members.map(id => members.find(m => m.id === id)).filter(m => m);
             const memberNames = pairingMembers.map(m => m.displayName).join(', ');
             const sharedInterests = pairing.sharedInterests || [];
+            const interestCount = sharedInterests.length;
 
             return `
                 <div class="history-item">
                     <div class="round-label">Round ${pairing.round}</div>
                     <div class="history-members">${memberNames}</div>
-                    ${sharedInterests.length > 0 ? `
-                        <div class="history-interests">
-                            ${sharedInterests.map(i => `<span class="shared-tag small">${i}</span>`).join('')}
+                    ${interestCount > 0 ? `
+                        <div class="shared-interests-dropdown">
+                            <button class="interests-toggle small" onclick="this.parentElement.classList.toggle('expanded')">
+                                <span>${interestCount} shared interests</span>
+                                <span class="toggle-arrow">›</span>
+                            </button>
+                            <div class="shared-interests-content">
+                                ${sharedInterests.map(i => `<span class="shared-tag small">${i}</span>`).join('')}
+                            </div>
                         </div>
                     ` : ''}
                 </div>

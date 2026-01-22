@@ -14,35 +14,46 @@ const Pairing = {
     },
 
     // Calculate pairing score (higher is better)
-    calculatePairingScore(members, history) {
-        let score = 0;
-
-        // Add points for shared interests
-        const shared = Pairing.getSharedInterests(members);
-        score += shared.length * 10;
-
-        // Check history for penalties
+    // Priority: 1) New pairs who haven't met, 2) Early rounds: at least 1 shared interest
+    calculatePairingScore(members, history, currentRound = 1) {
         const memberIds = members.map(m => m.id).sort();
-        const memberKey = memberIds.join(',');
 
-        for (const entry of history) {
-            const entryKey = entry.memberSet.sort().join(',');
+        // Extract the 3 unique pairs from this trio
+        const pairs = [
+            [memberIds[0], memberIds[1]],
+            [memberIds[0], memberIds[2]],
+            [memberIds[1], memberIds[2]]
+        ];
 
-            // Heavy penalty if exact trio has met before
-            if (entryKey === memberKey) {
-                score -= 100;
-            } else {
-                // Check for pair overlaps
-                const overlap = memberIds.filter(id => entry.memberSet.includes(id));
-                if (overlap.length === 2) {
-                    score -= 20; // Penalty for 2 members having met
+        // Count how many unique pairs have EVER met before
+        let pairsMet = 0;
+        for (const pair of pairs) {
+            const hasMetBefore = history.some(entry =>
+                entry.memberSet.includes(pair[0]) && entry.memberSet.includes(pair[1])
+            );
+            if (hasMetBefore) pairsMet++;
+        }
 
-                    // Additional penalty for shared interests that were already used
-                    const pastInterests = entry.sharedInterests || [];
-                    const repeatedInterests = shared.filter(i => pastInterests.includes(i));
-                    score -= repeatedInterests.length * 15; // Penalty per repeated interest
-                }
-            }
+        // HIGHEST PRIORITY: New pairs (each new pair is worth a lot)
+        // 0 pairs met = 3 new pairs = best possible
+        const newPairs = 3 - pairsMet;
+        let score = newPairs * 1000;
+
+        // Check if exact trio has met before (additional penalty)
+        const trioKey = memberIds.join(',');
+        const exactTrioMet = history.some(entry =>
+            entry.memberSet.sort().join(',') === trioKey
+        );
+        if (exactTrioMet) {
+            score -= 500;
+        }
+
+        // EARLY ROUNDS ONLY: Small bonus for having at least 1 shared interest
+        // This makes initial pairings feel more meaningful
+        // After round 3, we prioritize coverage over shared interests
+        const shared = Pairing.getSharedInterests(members);
+        if (currentRound <= 3 && shared.length > 0) {
+            score += 50; // Small bonus for at least 1 shared interest
         }
 
         return score;
@@ -104,13 +115,13 @@ const Pairing = {
             // Generate all possible trios
             const allTrios = Pairing.generateTrios(members);
 
-            // Score each trio - give bonus to trios containing priority members
+            // Score each trio - prioritize new pairs, then priority members
             const scoredTrios = allTrios.map(trio => {
-                let score = Pairing.calculatePairingScore(trio, history);
+                let score = Pairing.calculatePairingScore(trio, history, currentRound);
 
                 // Bonus for including priority members (they should be paired first)
                 const priorityCount = trio.filter(m => priorityMemberIds.includes(m.id)).length;
-                score += priorityCount * 50;
+                score += priorityCount * 100;
 
                 return {
                     members: trio,
