@@ -876,6 +876,29 @@ body {
     margin-top: var(--spacing-xs);
 }
 
+.groups-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.groups-header-actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.groups-header-actions .btn {
+    min-width: 70px;
+    text-align: center;
+}
+
+.btn-sm {
+    padding: 0 var(--spacing-sm);
+    font-size: 0.75rem;
+    height: 1.5rem;
+    line-height: 1.5rem;
+}
+
 /* Interests Screen */
 .interests-container {
     padding-bottom: var(--spacing-xl);
@@ -1181,24 +1204,6 @@ body {
     font-size: 0.8rem;
 }
 
-/* Bottom Actions */
-.bottom-actions {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
-    padding-right: 70px;
-    background: var(--bg-white);
-    box-shadow: 0 -4px 16px rgba(61, 64, 91, 0.08);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-}
-
-.bottom-actions .btn {
-    flex: 1;
-}
 
 /* Empty State */
 .empty-state {
@@ -1394,7 +1399,6 @@ body {
 .pairing-members {
     display: flex;
     justify-content: space-evenly;
-    margin-bottom: var(--spacing-md);
     width: 100%;
 }
 
@@ -1513,12 +1517,20 @@ body {
 
 .history-item .history-members {
     font-weight: 600;
-    margin-bottom: var(--spacing-xs);
 }
 
-.history-item .history-activity {
-    font-size: 0.9rem;
-    color: var(--text-medium);
+.history-interests {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: var(--spacing-xs);
+}
+
+.shared-tag.small {
+    font-size: 0.7rem;
+    padding: 1px 6px;
+    background: var(--primary);
+    color: white;
 }
 
 .no-history {
@@ -1686,11 +1698,14 @@ body {
 .reveal-card-back {
     background: var(--bg-white);
     transform: rotateY(180deg);
+    justify-content: flex-start;
+    padding-top: var(--spacing-xl);
 }
 
 .reveal-members {
     display: flex;
     justify-content: space-evenly;
+    margin-top: 10%;
     margin-bottom: var(--spacing-md);
     width: 100%;
 }
@@ -1724,6 +1739,7 @@ body {
 }
 
 .reveal-interests {
+    margin-top: auto;
     margin-bottom: var(--spacing-md);
 }
 
@@ -2003,13 +2019,14 @@ body {
 /* Music Toggle Button */
 .music-toggle {
     position: fixed;
-    bottom: 17px;
-    right: 16px;
+    bottom: 20px;
+    right: 20px;
     width: 40px;
     height: 40px;
     border-radius: var(--radius-full);
-    background: var(--bg-cream);
+    background: var(--bg-white);
     border: none;
+    box-shadow: var(--shadow-md);
     cursor: pointer;
     z-index: 200;
     display: flex;
@@ -2019,7 +2036,7 @@ body {
 }
 
 .music-toggle:hover {
-    background: var(--border);
+    transform: scale(1.1);
 }
 
 .music-toggle:active {
@@ -2084,14 +2101,6 @@ body {
     .screen {
         max-width: 600px;
         margin: 0 auto;
-    }
-
-    .bottom-actions {
-        max-width: 600px;
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
-        padding-right: var(--spacing-md);
     }
 
     .modal-content {

@@ -65,22 +65,20 @@ const App = {
     selectedGroupIcon: null,
     selectedGroupColor: null,
 
-    // Predefined interests list
+    // Predefined interests list (alphabetical)
     interests: [
-        // Outdoors & Nature
-        'Hiking', 'Camping', 'Nature', 'Gardens', 'Fishing', 'Beach', 'Mountains', 'Cycling', 'Running', 'Walking', 'Road Trips',
-        // Food & Drink
-        'Cooking', 'Baking', 'Restaurants', 'Coffee', 'Matcha', 'Tea', 'Wine', 'Beer', 'Food', 'Brunch', 'Sushi', 'Tacos', 'Burritos', 'KBBQ', 'Pizza', 'Burgers', 'Boba', 'Bingsu', 'Ice Cream', 'Cookies', 'Vegetarian', 'Healthy Eating',
-        // Creative
-        'Art', 'Music', 'Photography', 'Drawing', 'Painting', 'Crafts', 'Design', 'Writing', 'Poetry', 'Theater', 'DJing', 'Songwriting', 'Ceramics',
-        // Active
-        'Sports', 'Fitness', 'Yoga', 'Gym', 'Swimming', 'Baseball', 'Basketball', 'Football', 'Soccer', 'Tennis', 'Golf', 'Dancing', 'Volleyball', 'Disc Golf', 'Rock Climbing', 'Bowling', 'Martial Arts', 'Ping Pong', 'Supporting Women in Sports',
-        // Social & Entertainment
-        'Games', 'Movies', 'Trivia', 'Karaoke', 'Comedy', 'Concerts', 'Volunteering', 'Museums',
-        // Learning & Intellectual
-        'Reading', 'Technology', 'Languages', 'Science', 'History', 'Books', 'Podcasts', 'Documentaries', 'Philosophy', 'Psychology',
-        // Lifestyle
-        'Meditation', 'Pets', 'Cats', 'Dogs', 'Fashion', 'Sustainability', 'DIY', 'Cars', 'Anime', 'Gaming', 'Collectibles', 'Investing', 'Dominion', 'Pokemon Cards', 'Smash Bros', 'Chess', 'Poker',
+        'Anime', 'Art', 'Badminton', 'Baking', 'Baseball', 'Basketball', 'Beaches', 'Beer', 'Bingsu', 'Boba', 'Books',
+        'Bowling', 'Brunch', 'Burgers', 'Burritos', 'Cafés', 'Camping', 'Cars', 'Cats', 'Ceramics', 'Chess', 'Coffee',
+        'Collectibles', 'Comedy', 'Concerts', 'Cookies', 'Cooking', 'Crafts', 'Cycling', 'Dating', 'Dancing', 'Design', 'Desserts',
+        'Disc Golf', 'DIY', 'DJing', 'Documentaries', 'Dogs', 'Dominion', 'Drawing', 'Exploring', 'Fashion', 'Fasting', 'Finances',
+        'Fishing', 'Fitness', 'Food', 'Football', 'Free Events', 'Games', 'Gaming', 'Gardens', 'Golf', 'Gym', 'Healthy Eating', 'Hiking',
+        'History', 'Ice Cream', 'Investing', 'Journaling', 'Karaoke', 'KBBQ', 'Languages', 'Martial Arts', 'Makeup', 'Matcha',
+        'Meditation', 'Mountains', 'Movies', 'Museums', 'Music', 'Nature', 'Painting', 'Pets', 'Philosophy', 'Pho',
+        'Photography', 'Pickleball', 'Ping-Pong', 'Pizza', 'Playing Instruments', 'Podcasts', 'Poetry', 'Pokemon Cards',
+        'Poker', 'Psychology', 'Puzzles', 'Ramen', 'Reading', 'Restaurants', 'Road Trips', 'Rock Climbing', 'Running', 'Science',
+        'Shopping', 'Skincare', 'Smash Bros', 'Soccer', 'Songwriting', 'Sports', 'Studying', 
+        'Sushi', 'Sustainability', 'Swimming', 'Tacos', 'Tea', 'Technology', 'Tennis', 'Theater', 'Theme Parks', 'Theology', 'Thrifting',
+        'Traveling', 'Trivia', 'TV Shows', 'Vegetarian', 'Volleyball', 'Volunteering', 'Walking', 'Wine', 'Women\'s Sports', 'Writing', 'Yoga',
     ],
 
     selectedInterests: [],
@@ -107,6 +105,12 @@ const App = {
 
         // Set initial volume
         audio.volume = 0.3;
+
+        // Set random start time within first 2/3 of track
+        audio.addEventListener('loadedmetadata', () => {
+            const maxStart = audio.duration * (2 / 3);
+            audio.currentTime = Math.random() * maxStart;
+        });
 
         // Check saved preference
         const savedPref = localStorage.getItem('musicEnabled');
@@ -872,11 +876,17 @@ const App = {
         container.innerHTML = history.map(pairing => {
             const pairingMembers = pairing.members.map(id => members.find(m => m.id === id)).filter(m => m);
             const memberNames = pairingMembers.map(m => m.displayName).join(', ');
+            const sharedInterests = pairing.sharedInterests || [];
 
             return `
                 <div class="history-item">
                     <div class="round-label">Round ${pairing.round}</div>
                     <div class="history-members">${memberNames}</div>
+                    ${sharedInterests.length > 0 ? `
+                        <div class="history-interests">
+                            ${sharedInterests.map(i => `<span class="shared-tag small">${i}</span>`).join('')}
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }).join('');

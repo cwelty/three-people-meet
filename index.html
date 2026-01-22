@@ -108,7 +108,13 @@
                         <span class="icon-profile">👤</span>
                     </button>
                 </div>
-                <h2>Your Groups</h2>
+                <div class="groups-header">
+                    <h2>Your Groups</h2>
+                    <div class="groups-header-actions">
+                        <button id="create-group-btn" class="btn btn-primary btn-sm">+ Create</button>
+                        <button id="join-group-btn" class="btn btn-secondary btn-sm">Join</button>
+                    </div>
+                </div>
             </header>
             <div class="groups-container">
                 <div id="groups-list" class="groups-list"></div>
@@ -116,10 +122,6 @@
                     <p>You haven't joined any groups yet!</p>
                     <p>Create a new group or join one with a code.</p>
                 </div>
-            </div>
-            <div class="bottom-actions">
-                <button id="create-group-btn" class="btn btn-primary">Create Group</button>
-                <button id="join-group-btn" class="btn btn-secondary">Join Group</button>
             </div>
         </div>
 

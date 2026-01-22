@@ -36,6 +36,11 @@ const Pairing = {
                 const overlap = memberIds.filter(id => entry.memberSet.includes(id));
                 if (overlap.length === 2) {
                     score -= 20; // Penalty for 2 members having met
+
+                    // Additional penalty for shared interests that were already used
+                    const pastInterests = entry.sharedInterests || [];
+                    const repeatedInterests = shared.filter(i => pastInterests.includes(i));
+                    score -= repeatedInterests.length * 15; // Penalty per repeated interest
                 }
             }
         }
@@ -165,6 +170,7 @@ const Pairing = {
 
                 batch.set(historyRef, {
                     memberSet: memberIds.sort(),
+                    sharedInterests: sharedInterests,
                     round: currentRound,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
