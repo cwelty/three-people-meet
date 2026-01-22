@@ -132,6 +132,22 @@ const Auth = {
         }
     },
 
+    // Save display name
+    async saveDisplayName(displayName) {
+        if (!Auth.currentUser) return { success: false, error: 'Not logged in' };
+
+        try {
+            await db.collection('users').doc(Auth.currentUser.uid).update({
+                displayName: displayName
+            });
+            Auth.userData.displayName = displayName;
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving display name:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
     // Check if user has completed interests setup
     hasInterests() {
         return Auth.userData && Auth.userData.interests && Auth.userData.interests.length >= 10;

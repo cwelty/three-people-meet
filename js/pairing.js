@@ -1,76 +1,6 @@
 // Pairing Module for Three People Meet
 
 const Pairing = {
-    // Activity suggestions by category
-    activityCategories: {
-        outdoors: {
-            interests: ['hiking', 'camping', 'nature', 'gardening', 'fishing', 'cycling', 'running', 'walking', 'beach', 'mountains'],
-            activities: [
-                'Go on a scenic trail walk',
-                'Have a picnic in the park',
-                'Visit a botanical garden',
-                'Try a sunrise/sunset viewing spot',
-                'Explore a local nature reserve',
-                'Go for a bike ride together'
-            ]
-        },
-        food: {
-            interests: ['cooking', 'baking', 'restaurants', 'coffee', 'wine', 'food', 'brunch', 'sushi', 'pizza', 'vegetarian'],
-            activities: [
-                'Host a potluck dinner',
-                'Take a cooking class together',
-                'Do a food truck crawl',
-                'Have a coffee tasting session',
-                'Try a new restaurant each person picks',
-                'Bake something together'
-            ]
-        },
-        creative: {
-            interests: ['art', 'music', 'photography', 'drawing', 'painting', 'crafts', 'design', 'writing', 'poetry', 'theater'],
-            activities: [
-                'Visit an art museum',
-                'Go to an open mic night',
-                'Do a photo walk around the city',
-                'Try a paint-and-sip class',
-                'Attend a live concert',
-                'Visit a local gallery opening'
-            ]
-        },
-        active: {
-            interests: ['sports', 'fitness', 'yoga', 'gym', 'swimming', 'basketball', 'soccer', 'tennis', 'golf', 'martial arts'],
-            activities: [
-                'Try a group workout class',
-                'Go bowling',
-                'Play mini golf',
-                'Try rock climbing',
-                'Have a yoga session in the park',
-                'Play recreational sports together'
-            ]
-        },
-        social: {
-            interests: ['games', 'movies', 'trivia', 'karaoke', 'dancing', 'parties', 'socializing', 'comedy', 'podcasts', 'tv shows'],
-            activities: [
-                'Visit a board game cafe',
-                'Have a movie marathon',
-                'Join a pub trivia night',
-                'Go to karaoke',
-                'Attend a comedy show',
-                'Host a game night'
-            ]
-        },
-        learning: {
-            interests: ['reading', 'technology', 'languages', 'science', 'history', 'books', 'podcasts', 'documentaries', 'philosophy', 'psychology'],
-            activities: [
-                'Start a mini book club discussion',
-                'Attend a workshop or class',
-                'Visit a museum or science center',
-                'Go to a public lecture or talk',
-                'Have a language exchange session',
-                'Watch and discuss a documentary'
-            ]
-        }
-    },
-
     // Get shared interests between members
     getSharedInterests(members) {
         if (members.length < 2) return [];
@@ -81,36 +11,6 @@ const Pairing = {
         );
 
         return shared;
-    },
-
-    // Get suggested activity based on shared interests
-    getSuggestedActivity(sharedInterests) {
-        // Score each category based on matching interests
-        const categoryScores = {};
-
-        for (const [category, data] of Object.entries(Pairing.activityCategories)) {
-            categoryScores[category] = sharedInterests.filter(interest =>
-                data.interests.includes(interest.toLowerCase())
-            ).length;
-        }
-
-        // Find categories with matches
-        const matchingCategories = Object.entries(categoryScores)
-            .filter(([_, score]) => score > 0)
-            .sort((a, b) => b[1] - a[1]);
-
-        // Pick activity from best matching category, or random if no matches
-        let activities;
-        if (matchingCategories.length > 0) {
-            activities = Pairing.activityCategories[matchingCategories[0][0]].activities;
-        } else {
-            // Pick random category
-            const categories = Object.keys(Pairing.activityCategories);
-            const randomCategory = categories[Math.floor(Math.random() * categories.length)];
-            activities = Pairing.activityCategories[randomCategory].activities;
-        }
-
-        return activities[Math.floor(Math.random() * activities.length)];
     },
 
     // Calculate pairing score (higher is better)
@@ -176,6 +76,9 @@ const Pairing = {
                 return { success: false, error: 'Need at least 3 members to create pairings.' };
             }
 
+            // Get priority members from last round (those who weren't paired)
+            const priorityMemberIds = group.priorityMemberIds || [];
+
             // Get pairing history
             const historySnapshot = await db.collection('groups').doc(groupId)
                 .collection('pairingHistory').get();
@@ -189,14 +92,26 @@ const Pairing = {
                 currentRound = pairingsSnapshot.docs[0].data().round + 1;
             }
 
+            // Separate priority members from regular members
+            const priorityMembers = members.filter(m => priorityMemberIds.includes(m.id));
+            const regularMembers = members.filter(m => !priorityMemberIds.includes(m.id));
+
             // Generate all possible trios
             const allTrios = Pairing.generateTrios(members);
 
-            // Score each trio
-            const scoredTrios = allTrios.map(trio => ({
-                members: trio,
-                score: Pairing.calculatePairingScore(trio, history)
-            })).sort((a, b) => b.score - a.score);
+            // Score each trio - give bonus to trios containing priority members
+            const scoredTrios = allTrios.map(trio => {
+                let score = Pairing.calculatePairingScore(trio, history);
+
+                // Bonus for including priority members (they should be paired first)
+                const priorityCount = trio.filter(m => priorityMemberIds.includes(m.id)).length;
+                score += priorityCount * 50;
+
+                return {
+                    members: trio,
+                    score: score
+                };
+            }).sort((a, b) => b.score - a.score);
 
             // Greedy selection of non-overlapping trios
             const selectedPairings = [];
@@ -215,17 +130,23 @@ const Pairing = {
                 }
             }
 
-            // Handle leftovers (if members % 3 != 0)
+            // Handle leftovers (if members % 3 != 0) - store for next round prioritization
             const leftoverMembers = members.filter(m => !usedMembers.has(m.id));
+            const newPriorityMemberIds = leftoverMembers.map(m => m.id);
 
             // Create a batch write for all pairings
             const batch = db.batch();
+
+            // Update group with new priority members for next round
+            const groupRef = db.collection('groups').doc(groupId);
+            batch.update(groupRef, {
+                priorityMemberIds: newPriorityMemberIds
+            });
 
             // Save each pairing
             for (const pairing of selectedPairings) {
                 const memberIds = pairing.members.map(m => m.id);
                 const sharedInterests = Pairing.getSharedInterests(pairing.members);
-                const suggestedActivity = Pairing.getSuggestedActivity(sharedInterests);
 
                 const pairingRef = db.collection('groups').doc(groupId)
                     .collection('pairings').doc();
@@ -234,59 +155,7 @@ const Pairing = {
                     round: currentRound,
                     members: memberIds,
                     sharedInterests: sharedInterests,
-                    suggestedActivity: suggestedActivity,
                     revealed: false,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // Also save to history
-                const historyRef = db.collection('groups').doc(groupId)
-                    .collection('pairingHistory').doc();
-
-                batch.set(historyRef, {
-                    memberSet: memberIds.sort(),
-                    round: currentRound,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-
-            // Handle leftovers - add to existing pairings or create pair
-            if (leftoverMembers.length === 1 && selectedPairings.length > 0) {
-                // Add single leftover to the last pairing (making it a group of 4)
-                const lastPairing = selectedPairings[selectedPairings.length - 1];
-                const extendedMembers = [...lastPairing.members, leftoverMembers[0]];
-                const memberIds = extendedMembers.map(m => m.id);
-                const sharedInterests = Pairing.getSharedInterests(extendedMembers);
-                const suggestedActivity = Pairing.getSuggestedActivity(sharedInterests);
-
-                const pairingRef = db.collection('groups').doc(groupId)
-                    .collection('pairings').doc();
-
-                batch.set(pairingRef, {
-                    round: currentRound,
-                    members: memberIds,
-                    sharedInterests: sharedInterests,
-                    suggestedActivity: suggestedActivity,
-                    revealed: false,
-                    isExtended: true,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            } else if (leftoverMembers.length === 2) {
-                // Create a pair
-                const memberIds = leftoverMembers.map(m => m.id);
-                const sharedInterests = Pairing.getSharedInterests(leftoverMembers);
-                const suggestedActivity = Pairing.getSuggestedActivity(sharedInterests);
-
-                const pairingRef = db.collection('groups').doc(groupId)
-                    .collection('pairings').doc();
-
-                batch.set(pairingRef, {
-                    round: currentRound,
-                    members: memberIds,
-                    sharedInterests: sharedInterests,
-                    suggestedActivity: suggestedActivity,
-                    revealed: false,
-                    isPair: true,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
@@ -303,7 +172,20 @@ const Pairing = {
 
             await batch.commit();
 
-            return { success: true, round: currentRound, pairingsCount: selectedPairings.length };
+            // Build result message
+            let resultMessage = '';
+            if (leftoverMembers.length > 0) {
+                const leftoverNames = leftoverMembers.map(m => m.displayName).join(', ');
+                resultMessage = `${leftoverNames} will be prioritized next round.`;
+            }
+
+            return {
+                success: true,
+                round: currentRound,
+                pairingsCount: selectedPairings.length,
+                leftoverCount: leftoverMembers.length,
+                message: resultMessage
+            };
         } catch (error) {
             console.error('Error generating pairings:', error);
             return { success: false, error: error.message };

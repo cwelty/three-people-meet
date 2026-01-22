@@ -3,17 +3,33 @@
 const App = {
     currentGroupId: null,
 
-    // Animal emoji avatars
+    // Animal emoji avatars - comprehensive list
     avatars: [
-        '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼',
-        '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔',
-        '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺',
-        '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞',
-        '🐙', '🦑', '🦐', '🦀', '🐡', '🐠', '🐟', '🐬',
-        '🐳', '🦈', '🐊', '🐢', '🦎', '🐍', '🦖', '🦕'
+        // Mammals
+        '🐶', '🐕', '🦮', '🐕‍🦺', '🐩', '🐺', '🦊', '🦝',
+        '🐱', '🐈', '🐈‍⬛', '🦁', '🐯', '🐅', '🐆', '🐴',
+        '🐎', '🦄', '🦓', '🦌', '🦬', '🐮', '🐂', '🐃',
+        '🐄', '🐷', '🐖', '🐗', '🐽', '🐏', '🐑', '🐐',
+        '🐪', '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛',
+        '🐭', '🐁', '🐀', '🐹', '🐰', '🐇', '🐿️', '🦫',
+        '🦔', '🦇', '🐻', '🐻‍❄️', '🐨', '🐼', '🦥', '🦦',
+        '🦨', '🦘', '🦡', '🐾',
+        // Birds
+        '🐔', '🐓', '🐣', '🐤', '🐥', '🐦', '🐧', '🕊️',
+        '🦅', '🦆', '🦢', '🦉', '🦤', '🪶', '🦩', '🦚',
+        '🦜', '🦃', '🐦‍⬛',
+        // Marine & Reptiles
+        '🐸', '🐊', '🐢', '🦎', '🐍', '🐲', '🐉', '🦕',
+        '🦖', '🐳', '🐋', '🐬', '🦭', '🐟', '🐠', '🐡',
+        '🦈', '🐙', '🦑', '🦐', '🦞', '🦀', '🦪',
+        // Insects & Others
+        '🐌', '🦋', '🐛', '🐜', '🐝', '🪲', '🐞', '🦗',
+        '🪳', '🕷️', '🦂', '🦟', '🪰', '🪱', '🦠'
     ],
 
     selectedAvatar: null,
+    avatarPage: 0,
+    avatarsPerPage: 24,
 
     // Group icons (landscape/location themed)
     groupIcons: [
@@ -38,6 +54,10 @@ const App = {
         '#00F5D4', // Teal
         '#FEE440', // Yellow
         '#FF6B6B', // Red
+        '#B8E0D2', // Pastel mint
+        '#D6EADF', // Pastel sage
+        '#EAC4D5', // Pastel rose
+        '#A2D2FF', // Pastel blue
         '#4ECDC4', // Turquoise
         '#45B7D1'  // Sky blue
     ],
@@ -48,29 +68,132 @@ const App = {
     // Predefined interests list
     interests: [
         // Outdoors & Nature
-        'Hiking', 'Camping', 'Nature', 'Gardening', 'Fishing', 'Beach', 'Mountains', 'Cycling', 'Running', 'Walking', 'Road Trips',
+        'Hiking', 'Camping', 'Nature', 'Gardens', 'Fishing', 'Beach', 'Mountains', 'Cycling', 'Running', 'Walking', 'Road Trips',
         // Food & Drink
-        'Cooking', 'Baking', 'Restaurants', 'Coffee', 'Matcha', 'Tea', 'Wine', 'Beer', 'Food', 'Brunch', 'Sushi', 'Tacos', 'Pizza', 'Vegetarian', 'Healthy Eating',
+        'Cooking', 'Baking', 'Restaurants', 'Coffee', 'Matcha', 'Tea', 'Wine', 'Beer', 'Food', 'Brunch', 'Sushi', 'Tacos', 'Burritos', 'KBBQ', 'Pizza', 'Burgers', 'Boba', 'Bingsu', 'Ice Cream', 'Cookies', 'Vegetarian', 'Healthy Eating',
         // Creative
-        'Art', 'Music', 'Photography', 'Drawing', 'Painting', 'Crafts', 'Design', 'Writing', 'Poetry', 'Theater', 'DJing', 'Songwriting',
+        'Art', 'Music', 'Photography', 'Drawing', 'Painting', 'Crafts', 'Design', 'Writing', 'Poetry', 'Theater', 'DJing', 'Songwriting', 'Ceramics',
         // Active
-        'Sports', 'Fitness', 'Yoga', 'Gym', 'Swimming', 'Basketball', 'Soccer', 'Tennis', 'Golf', 'Dancing', 'Volleyball', 'Disc Golf', 'Rock Climbing',
+        'Sports', 'Fitness', 'Yoga', 'Gym', 'Swimming', 'Baseball', 'Basketball', 'Football', 'Soccer', 'Tennis', 'Golf', 'Dancing', 'Volleyball', 'Disc Golf', 'Rock Climbing', 'Bowling', 'Martial Arts', 'Ping Pong', 'Supporting Women in Sports',
         // Social & Entertainment
-        'Games', 'Movies', 'Trivia', 'Karaoke', 'Comedy', 'Concerts', 'Festivals', 'Parties', 'Travel', 'Volunteering',
+        'Games', 'Movies', 'Trivia', 'Karaoke', 'Comedy', 'Concerts', 'Volunteering', 'Museums',
         // Learning & Intellectual
         'Reading', 'Technology', 'Languages', 'Science', 'History', 'Books', 'Podcasts', 'Documentaries', 'Philosophy', 'Psychology',
         // Lifestyle
-        'Meditation', 'Pets', 'Cats', 'Dogs', 'Fashion', 'Sustainability', 'DIY', 'Cars', 'Anime', 'Gaming', 'Collectibles', 'Investing', 'Dominion', 'Pokemon Cards'
+        'Meditation', 'Pets', 'Cats', 'Dogs', 'Fashion', 'Sustainability', 'DIY', 'Cars', 'Anime', 'Gaming', 'Collectibles', 'Investing', 'Dominion', 'Pokemon Cards', 'Smash Bros', 'Chess', 'Poker',
     ],
 
     selectedInterests: [],
+
+    // Music state
+    musicEnabled: false,
+    musicStarted: false,
 
     // Initialize the app
     init() {
         console.log('App.init() called');
         Auth.init();
         App.setupEventListeners();
+        App.initNatureScene();
+        App.initMusic();
         console.log('App.init() complete');
+    },
+
+    // Initialize background music
+    initMusic() {
+        const audio = document.getElementById('bg-music');
+        const toggle = document.getElementById('music-toggle');
+        const icon = toggle.querySelector('.music-icon');
+
+        // Set initial volume
+        audio.volume = 0.3;
+
+        // Check saved preference
+        const savedPref = localStorage.getItem('musicEnabled');
+        App.musicEnabled = savedPref === 'true';
+
+        // Update icon based on saved preference
+        if (App.musicEnabled) {
+            icon.classList.remove('music-off');
+            icon.classList.add('music-on');
+        }
+
+        // Toggle button click
+        toggle.addEventListener('click', () => {
+            App.musicEnabled = !App.musicEnabled;
+            localStorage.setItem('musicEnabled', App.musicEnabled);
+
+            icon.classList.toggle('music-off', !App.musicEnabled);
+            icon.classList.toggle('music-on', App.musicEnabled);
+
+            if (App.musicEnabled) {
+                audio.play().catch(e => console.log('Audio play failed:', e));
+            } else {
+                audio.pause();
+            }
+        });
+
+        // Try to start music on first user interaction if enabled
+        const startMusicOnInteraction = () => {
+            if (App.musicEnabled && !App.musicStarted) {
+                audio.play().then(() => {
+                    App.musicStarted = true;
+                }).catch(e => console.log('Audio autoplay blocked:', e));
+            }
+            // Remove listeners after first interaction
+            document.removeEventListener('click', startMusicOnInteraction);
+            document.removeEventListener('touchstart', startMusicOnInteraction);
+        };
+
+        document.addEventListener('click', startMusicOnInteraction);
+        document.addEventListener('touchstart', startMusicOnInteraction);
+    },
+
+    // Initialize anime nature background
+    initNatureScene() {
+        const container = document.getElementById('petals-container');
+        if (!container) return;
+
+        // Create falling petals continuously
+        const createPetal = () => {
+            const petal = document.createElement('div');
+            petal.className = 'sakura-petal';
+
+            // Random starting position - start more from the left since wind blows right
+            const startX = Math.random() * 80 - 20; // -20% to 60%
+            const startY = Math.random() * 30 - 10; // Start slightly above or below top
+            const size = 6 + Math.random() * 10; // 6-16px
+            const duration = 10 + Math.random() * 15; // 10-25s (slower for more float)
+            const drift = 150 + Math.random() * 250; // 150-400px horizontal drift (more sideways)
+            const rotation = 360 + Math.random() * 1080; // more rotation
+            const delay = Math.random() * 0.5;
+
+            petal.style.cssText = `
+                left: ${startX}%;
+                top: ${startY}%;
+                width: ${size}px;
+                height: ${size}px;
+                animation-duration: ${duration}s;
+                animation-delay: ${delay}s;
+                --drift: ${drift}px;
+                --rotation: ${rotation}deg;
+            `;
+
+            container.appendChild(petal);
+
+            // Remove petal after animation
+            setTimeout(() => {
+                petal.remove();
+            }, (duration + delay) * 1000);
+        };
+
+        // Create initial batch of petals
+        for (let i = 0; i < 20; i++) {
+            setTimeout(createPetal, i * 150);
+        }
+
+        // Continuously create new petals
+        setInterval(createPetal, 600);
     },
 
     // Handle auth state changes
@@ -127,8 +250,8 @@ const App = {
         });
         document.getElementById('leave-group-btn').addEventListener('click', App.handleLeaveGroup);
         document.getElementById('generate-pairings-btn').addEventListener('click', App.handleGeneratePairings);
-        document.getElementById('view-all-pairings-btn').addEventListener('click', App.handleViewAllPairings);
         document.getElementById('trigger-reveal-btn').addEventListener('click', App.handleTriggerReveal);
+        document.getElementById('copy-code-btn').addEventListener('click', App.handleCopyCode);
 
         // Profile screen
         document.getElementById('back-from-profile').addEventListener('click', () => App.showMainScreen());
@@ -140,6 +263,7 @@ const App = {
             App.showScreen('interests-screen');
         });
         document.getElementById('logout-btn').addEventListener('click', App.handleLogout);
+        document.getElementById('save-name-btn').addEventListener('click', App.handleSaveDisplayName);
 
         // Reveal done
         document.getElementById('reveal-done-btn').addEventListener('click', () => {
@@ -236,20 +360,74 @@ const App = {
         Reveal.cleanup();
     },
 
-    // Avatar selection
-    renderAvatarGrid(gridId) {
-        const grid = document.getElementById(gridId);
+    async handleSaveDisplayName() {
+        const input = document.getElementById('display-name-input');
+        const name = input.value.trim();
+
+        if (!name) {
+            App.showToast('Please enter a name', 'error');
+            return;
+        }
+
+        const result = await Auth.saveDisplayName(name);
+        if (result.success) {
+            document.getElementById('profile-name').textContent = name;
+            App.showToast('Name saved!', 'success');
+        } else {
+            App.showToast(result.error, 'error');
+        }
+    },
+
+    // Avatar selection with pagination
+    renderAvatarGrid(gridId, jumpToSelected = true) {
+        const container = document.getElementById(gridId);
         const currentAvatar = Auth.userData?.avatar || App.selectedAvatar;
+        const totalPages = Math.ceil(App.avatars.length / App.avatarsPerPage);
 
-        grid.innerHTML = App.avatars.map(avatar => `
-            <div class="avatar-option ${currentAvatar === avatar ? 'selected' : ''}" data-avatar="${avatar}">
-                ${avatar}
+        // Jump to page containing current avatar on first render
+        if (jumpToSelected && currentAvatar) {
+            const avatarIndex = App.avatars.indexOf(currentAvatar);
+            if (avatarIndex !== -1) {
+                App.avatarPage = Math.floor(avatarIndex / App.avatarsPerPage);
+            }
+        }
+
+        // Ensure page is valid
+        if (App.avatarPage >= totalPages) App.avatarPage = 0;
+        if (App.avatarPage < 0) App.avatarPage = totalPages - 1;
+
+        // Get avatars for current page
+        const startIndex = App.avatarPage * App.avatarsPerPage;
+        const pageAvatars = App.avatars.slice(startIndex, startIndex + App.avatarsPerPage);
+
+        container.innerHTML = `
+            <div class="avatar-pagination">
+                <button class="avatar-nav-btn avatar-prev" ${App.avatarPage === 0 ? 'disabled' : ''}>‹</button>
+                <div class="avatar-grid-inner">
+                    ${pageAvatars.map(avatar => `
+                        <div class="avatar-option ${currentAvatar === avatar ? 'selected' : ''}" data-avatar="${avatar}">
+                            ${avatar}
+                        </div>
+                    `).join('')}
+                </div>
+                <button class="avatar-nav-btn avatar-next" ${App.avatarPage === totalPages - 1 ? 'disabled' : ''}>›</button>
             </div>
-        `).join('');
+            <div class="avatar-page-indicator">${App.avatarPage + 1} / ${totalPages}</div>
+        `;
 
-        // Add click handlers
-        grid.querySelectorAll('.avatar-option').forEach(option => {
+        // Add click handlers for avatars
+        container.querySelectorAll('.avatar-option').forEach(option => {
             option.addEventListener('click', () => App.selectAvatar(option, gridId));
+        });
+
+        // Add click handlers for navigation
+        container.querySelector('.avatar-prev').addEventListener('click', () => {
+            App.avatarPage--;
+            App.renderAvatarGrid(gridId, false);
+        });
+        container.querySelector('.avatar-next').addEventListener('click', () => {
+            App.avatarPage++;
+            App.renderAvatarGrid(gridId, false);
         });
     },
 
@@ -422,6 +600,7 @@ const App = {
             document.getElementById('profile-name').textContent = Auth.userData.displayName || 'User';
             document.getElementById('profile-email').textContent = Auth.userData.email;
             document.getElementById('profile-avatar').textContent = avatar;
+            document.getElementById('display-name-input').value = Auth.userData.displayName || '';
 
             // Update header profile button with avatar
             const profileBtn = document.querySelector('#profile-btn .icon-profile');
@@ -525,6 +704,16 @@ const App = {
         }
     },
 
+    async handleCopyCode() {
+        const code = document.getElementById('group-code-display').textContent;
+        try {
+            await navigator.clipboard.writeText(code);
+            App.showToast('Code copied!', 'success');
+        } catch (err) {
+            App.showToast('Failed to copy', 'error');
+        }
+    },
+
     // Group screen
     async showGroupScreen(groupId) {
         App.currentGroupId = groupId;
@@ -541,7 +730,7 @@ const App = {
 
         // Update header
         document.getElementById('group-title').textContent = group.name;
-        document.getElementById('group-code-display').innerHTML = `Code: <span class="group-code">${group.code}</span>`;
+        document.getElementById('group-code-display').textContent = group.code;
 
         // Show/hide creator controls
         const creatorControls = document.getElementById('creator-controls');
@@ -564,13 +753,6 @@ const App = {
 
         // Load pairing history
         await App.loadPairingHistory(groupId);
-
-        // Subscribe to reveal state
-        Reveal.subscribeToReveal(groupId, (state) => {
-            if (state.inProgress && !Reveal.isRevealing) {
-                Reveal.showReveal(groupId, Auth.currentUser.uid);
-            }
-        });
 
         // Subscribe to group changes for real-time updates
         Groups.subscribeToGroup(groupId, (updatedGroup) => {
@@ -600,43 +782,77 @@ const App = {
     },
 
     async loadCurrentPairing(groupId) {
-        const pairing = await Pairing.getCurrentPairing(groupId, Auth.currentUser.uid);
-        const container = document.getElementById('current-pairing');
+        const container = document.getElementById('current-pairings');
+        const roundLabel = document.getElementById('current-round-label');
+        const revealBtn = document.getElementById('trigger-reveal-btn');
 
-        if (!pairing) {
+        // Get latest round
+        const latestRound = await Pairing.getLatestRound(groupId);
+
+        if (latestRound === 0) {
             container.innerHTML = '<p class="no-pairing">No pairings yet. Wait for a creator to generate pairings!</p>';
-            container.classList.add('no-pairing-card');
+            roundLabel.textContent = '';
+            revealBtn.classList.add('hidden');
             return;
         }
 
-        container.classList.remove('no-pairing-card');
-
-        // Get member details
+        // Get all pairings for the current round
+        const allPairings = await Pairing.getRoundPairings(groupId, latestRound);
         const members = Groups.groupMembers;
-        const pairingMembers = pairing.members.map(id => members.find(m => m.id === id)).filter(m => m);
+        const group = Groups.currentGroup;
+        const groupColor = group?.color || '#E07A5F';
+        const currentUserId = Auth.currentUser.uid;
 
-        container.innerHTML = `
-            <div class="pairing-members">
-                ${pairingMembers.map(m => `
-                    <div class="pairing-member">
-                        <div class="member-avatar">${App.getMemberAvatar(m)}</div>
-                        <div class="member-name">${m.displayName}</div>
+        // Check if user is in any pairing this round
+        const userPairing = allPairings.find(p => p.members.includes(currentUserId));
+
+        // Check if user is prioritized for next round
+        const isPrioritized = group?.priorityMemberIds?.includes(currentUserId);
+
+        // Show reveal button only if user has a pairing
+        if (userPairing) {
+            revealBtn.classList.remove('hidden');
+        } else {
+            revealBtn.classList.add('hidden');
+        }
+
+        roundLabel.textContent = `- Round ${latestRound}`;
+
+        // Build HTML for all pairings
+        let html = '';
+
+        // Show priority message if user wasn't paired
+        if (!userPairing && isPrioritized) {
+            html += '<p class="priority-message">You\'ll be paired first next round!</p>';
+        }
+
+        allPairings.forEach(pairing => {
+            const pairingMembers = pairing.members.map(id => members.find(m => m.id === id)).filter(m => m);
+            const isUsersTrio = pairing.members.includes(currentUserId);
+
+            html += `
+                <div class="pairing-card ${isUsersTrio ? 'users-trio' : ''}">
+                    ${isUsersTrio ? '<div class="your-trio-label">Your Trio</div>' : ''}
+                    <div class="pairing-members">
+                        ${pairingMembers.map(m => `
+                            <div class="pairing-member">
+                                <div class="member-avatar" style="background-color: ${groupColor}40">${App.getMemberAvatar(m)}</div>
+                                <div class="member-name">${m.displayName}</div>
+                            </div>
+                        `).join('')}
                     </div>
-                `).join('')}
-            </div>
-            ${pairing.sharedInterests.length > 0 ? `
-                <div class="shared-interests">
-                    <h4>Shared Interests</h4>
-                    <div class="shared-interests-tags">
-                        ${pairing.sharedInterests.map(i => `<span class="shared-tag">${i}</span>`).join('')}
-                    </div>
+                    ${pairing.sharedInterests && pairing.sharedInterests.length > 0 ? `
+                        <div class="shared-interests">
+                            <div class="shared-interests-tags">
+                                ${pairing.sharedInterests.map(i => `<span class="shared-tag">${i}</span>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
-            ` : ''}
-            <div class="suggested-activity">
-                <h4>Suggested Activity</h4>
-                <p>${pairing.suggestedActivity}</p>
-            </div>
-        `;
+            `;
+        });
+
+        container.innerHTML = html;
     },
 
     async loadPairingHistory(groupId) {
@@ -658,7 +874,6 @@ const App = {
                 <div class="history-item">
                     <div class="round-label">Round ${pairing.round}</div>
                     <div class="history-members">${memberNames}</div>
-                    <div class="history-activity">${pairing.suggestedActivity}</div>
                 </div>
             `;
         }).join('');
@@ -676,7 +891,11 @@ const App = {
         btn.textContent = 'Generate New Pairings';
 
         if (result.success) {
-            App.showToast(`Round ${result.round} pairings created!`, 'success');
+            let toastMsg = `Round ${result.round} pairings created!`;
+            if (result.message) {
+                toastMsg += ` ${result.message}`;
+            }
+            App.showToast(toastMsg, 'success');
             await App.loadCurrentPairing(App.currentGroupId);
             await App.loadPairingHistory(App.currentGroupId);
         } else {
@@ -684,50 +903,13 @@ const App = {
         }
     },
 
-    async handleViewAllPairings() {
-        const latestRound = await Pairing.getLatestRound(App.currentGroupId);
-        if (latestRound === 0) {
-            App.showToast('No pairings yet', 'error');
+    async handleTriggerReveal() {
+        if (!Auth.currentUser) {
+            App.showToast('Not logged in', 'error');
             return;
         }
-
-        const pairings = await Pairing.getRoundPairings(App.currentGroupId, latestRound);
-        const members = Groups.groupMembers;
-        const groupColor = Groups.currentGroup?.color || '#E07A5F';
-
-        document.getElementById('current-round').textContent = latestRound;
-
-        const list = document.getElementById('all-pairings-list');
-        list.innerHTML = pairings.map(pairing => {
-            const pairingMembers = pairing.members.map(id => members.find(m => m.id === id)).filter(m => m);
-
-            return `
-                <div class="pairing-item">
-                    <div class="pairing-members">
-                        ${pairingMembers.map(m => `
-                            <div class="pairing-member">
-                                <div class="member-avatar" style="background-color: ${groupColor}40">${App.getMemberAvatar(m)}</div>
-                                <div class="member-name">${m.displayName}</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div style="margin-top: 8px; font-size: 0.9rem; color: var(--text-medium);">
-                        ${pairing.suggestedActivity}
-                    </div>
-                </div>
-            `;
-        }).join('');
-
-        App.showModal('all-pairings-modal');
-    },
-
-    async handleTriggerReveal() {
-        const result = await Reveal.triggerReveal(App.currentGroupId);
-        if (result.success) {
-            // The reveal subscription will handle showing the reveal screen
-        } else {
-            App.showToast(result.error, 'error');
-        }
+        // Directly show the reveal animation
+        Reveal.showReveal(App.currentGroupId, Auth.currentUser.uid);
     },
 
     // Utility
