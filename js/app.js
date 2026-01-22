@@ -31,6 +31,11 @@ const App = {
     avatarPage: 0,
     avatarsPerPage: 24,
 
+    // Groups pagination
+    groupsPage: 0,
+    groupsPerPage: 3,
+    userGroups: [],
+
     // Group icons (landscape/location themed)
     groupIcons: [
         '🏠', '🏡', '🏘️', '🏰', '🏯', '⛪', '🕌', '🛕',
@@ -245,9 +250,11 @@ const App = {
             App.showMainScreen();
         });
         document.getElementById('leave-group-btn').addEventListener('click', App.handleLeaveGroup);
+        document.getElementById('delete-group-btn').addEventListener('click', App.handleDeleteGroup);
         document.getElementById('generate-pairings-btn').addEventListener('click', App.handleGeneratePairings);
         document.getElementById('trigger-reveal-btn').addEventListener('click', App.handleTriggerReveal);
         document.getElementById('copy-code-btn').addEventListener('click', App.handleCopyCode);
+        document.getElementById('cancel-transfer-btn').addEventListener('click', () => App.hideModals());
 
         // Profile screen
         document.getElementById('back-from-profile').addEventListener('click', () => App.showMainScreen());
@@ -651,38 +658,86 @@ const App = {
 
     async loadGroups() {
         const groups = await Groups.getUserGroups();
-        const list = document.getElementById('groups-list');
-        const noGroups = document.getElementById('no-groups');
 
         // Sort groups alphabetically by name
         groups.sort((a, b) => a.name.localeCompare(b.name));
 
+        App.userGroups = groups;
+        App.groupsPage = 0;
+        App.renderGroupsList();
+    },
+
+    renderGroupsList() {
+        const list = document.getElementById('groups-list');
+        const noGroups = document.getElementById('no-groups');
+        const groups = App.userGroups;
+
         if (groups.length === 0) {
             list.innerHTML = '';
             noGroups.classList.remove('hidden');
-        } else {
-            noGroups.classList.add('hidden');
-            list.innerHTML = groups.map(group => {
-                const icon = group.icon || '🏠';
-                const color = group.color || '#E07A5F';
-                return `
-                    <div class="group-card" data-group-id="${group.id}" style="border-left: 6px solid ${color}">
-                        <div class="group-card-header">
-                            <span class="group-icon" style="background-color: ${color}30">${icon}</span>
-                            <div class="group-card-info">
-                                <h3>${group.name}</h3>
-                                <p class="member-count">${group.memberIds.length} member${group.memberIds.length !== 1 ? 's' : ''}</p>
-                            </div>
+            return;
+        }
+
+        noGroups.classList.add('hidden');
+
+        const totalPages = Math.ceil(groups.length / App.groupsPerPage);
+
+        // Ensure page is valid
+        if (App.groupsPage >= totalPages) App.groupsPage = 0;
+        if (App.groupsPage < 0) App.groupsPage = totalPages - 1;
+
+        // Get groups for current page
+        const startIndex = App.groupsPage * App.groupsPerPage;
+        const pageGroups = groups.slice(startIndex, startIndex + App.groupsPerPage);
+
+        const groupCards = pageGroups.map(group => {
+            const icon = group.icon || '🏠';
+            const color = group.color || '#E07A5F';
+            return `
+                <div class="group-card" data-group-id="${group.id}" style="border-left: 6px solid ${color}">
+                    <div class="group-card-header">
+                        <span class="group-icon" style="background-color: ${color}30">${icon}</span>
+                        <div class="group-card-info">
+                            <h3>${group.name}</h3>
+                            <p class="member-count">${group.memberIds.length} member${group.memberIds.length !== 1 ? 's' : ''}</p>
                         </div>
                     </div>
-                `;
-            }).join('');
+                </div>
+            `;
+        }).join('');
 
-            // Add click handlers
-            list.querySelectorAll('.group-card').forEach(card => {
-                card.addEventListener('click', () => App.showGroupScreen(card.dataset.groupId));
+        // Only show pagination if more than one page
+        if (totalPages > 1) {
+            list.innerHTML = `
+                <div class="groups-pagination">
+                    <button class="groups-nav-btn groups-prev" ${App.groupsPage === 0 ? 'disabled' : ''}>‹</button>
+                    <div class="groups-cards">
+                        ${groupCards}
+                    </div>
+                    <button class="groups-nav-btn groups-next" ${App.groupsPage === totalPages - 1 ? 'disabled' : ''}>›</button>
+                </div>
+                <div class="groups-page-indicator">${App.groupsPage + 1} / ${totalPages}</div>
+            `;
+
+            // Add click handlers for navigation
+            list.querySelector('.groups-prev').addEventListener('click', (e) => {
+                e.stopPropagation();
+                App.groupsPage--;
+                App.renderGroupsList();
             });
+            list.querySelector('.groups-next').addEventListener('click', (e) => {
+                e.stopPropagation();
+                App.groupsPage++;
+                App.renderGroupsList();
+            });
+        } else {
+            list.innerHTML = `<div class="groups-cards">${groupCards}</div>`;
         }
+
+        // Add click handlers for group cards
+        list.querySelectorAll('.group-card').forEach(card => {
+            card.addEventListener('click', () => App.showGroupScreen(card.dataset.groupId));
+        });
     },
 
     // Group handlers
@@ -722,6 +777,17 @@ const App = {
     },
 
     async handleLeaveGroup() {
+        const group = Groups.currentGroup;
+        const userId = Auth.currentUser.uid;
+        const isCreator = group.creatorIds && group.creatorIds.includes(userId);
+        const otherMembers = group.memberIds.filter(id => id !== userId);
+
+        // If creator and there are other members, must transfer leadership first
+        if (isCreator && otherMembers.length > 0) {
+            App.showTransferLeaderModal();
+            return;
+        }
+
         if (!confirm('Are you sure you want to leave this group?')) return;
 
         const result = await Groups.leaveGroup(App.currentGroupId);
@@ -729,6 +795,68 @@ const App = {
             Groups.cleanup();
             Reveal.cleanup();
             App.showToast('Left group', 'success');
+            App.showMainScreen();
+        } else {
+            App.showToast(result.error, 'error');
+        }
+    },
+
+    showTransferLeaderModal() {
+        const group = Groups.currentGroup;
+        const userId = Auth.currentUser.uid;
+        const members = Groups.groupMembers.filter(m => m.id !== userId);
+
+        const list = document.getElementById('transfer-leader-list');
+        list.innerHTML = members.map(member => `
+            <div class="transfer-leader-option" data-member-id="${member.id}">
+                <span class="member-avatar">${member.avatar || '👤'}</span>
+                <span class="member-name">${member.displayName}</span>
+            </div>
+        `).join('');
+
+        // Add click handlers
+        list.querySelectorAll('.transfer-leader-option').forEach(option => {
+            option.addEventListener('click', () => App.handleTransferLeader(option.dataset.memberId));
+        });
+
+        App.showModal('transfer-leader-modal');
+    },
+
+    async handleTransferLeader(newLeaderId) {
+        const newLeader = Groups.groupMembers.find(m => m.id === newLeaderId);
+        const newLeaderName = newLeader?.displayName || 'this member';
+
+        if (!confirm(`Transfer leadership to ${newLeaderName} and leave the group?`)) return;
+
+        // Transfer leadership
+        const transferResult = await Groups.transferLeadership(App.currentGroupId, newLeaderId);
+        if (!transferResult.success) {
+            App.showToast(transferResult.error, 'error');
+            return;
+        }
+
+        // Now leave the group
+        const leaveResult = await Groups.leaveGroup(App.currentGroupId);
+        if (leaveResult.success) {
+            App.hideModals();
+            Groups.cleanup();
+            Reveal.cleanup();
+            App.showToast(`Leadership transferred to ${newLeaderName}. Left group.`, 'success');
+            App.showMainScreen();
+        } else {
+            App.showToast(leaveResult.error, 'error');
+        }
+    },
+
+    async handleDeleteGroup() {
+        const groupName = Groups.currentGroup?.name || 'this group';
+        if (!confirm(`Are you sure you want to delete "${groupName}"? This will remove all members and cannot be undone.`)) return;
+
+        const result = await Groups.deleteGroup(App.currentGroupId);
+        if (result.success) {
+            Groups.cleanup();
+            Reveal.cleanup();
+            App.showToast('Group deleted', 'success');
             App.showMainScreen();
         } else {
             App.showToast(result.error, 'error');
@@ -774,6 +902,14 @@ const App = {
             App.renderGroupColorGrid('edit-group-color-grid', App.selectedGroupColor);
         } else {
             creatorControls.classList.add('hidden');
+        }
+
+        // Hide leave button if only 1 member (they should delete instead)
+        const leaveBtn = document.getElementById('leave-group-btn');
+        if (group.memberIds.length <= 1) {
+            leaveBtn.classList.add('hidden');
+        } else {
+            leaveBtn.classList.remove('hidden');
         }
 
         // Load members

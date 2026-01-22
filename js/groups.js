@@ -168,6 +168,80 @@ const Groups = {
         }
     },
 
+    // Transfer leadership to another member
+    async transferLeadership(groupId, newLeaderId) {
+        if (!Auth.currentUser) return { success: false, error: 'Not logged in' };
+
+        try {
+            const group = await Groups.getGroup(groupId);
+            if (!group || !Groups.isCreator(group)) {
+                return { success: false, error: 'Only creators can transfer leadership.' };
+            }
+
+            // Add new leader to creatorIds
+            await db.collection('groups').doc(groupId).update({
+                creatorIds: firebase.firestore.FieldValue.arrayUnion(newLeaderId)
+            });
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error transferring leadership:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // Delete a group (creators only)
+    async deleteGroup(groupId) {
+        if (!Auth.currentUser) return { success: false, error: 'Not logged in' };
+
+        try {
+            const group = await Groups.getGroup(groupId);
+            if (!group || !Groups.isCreator(group)) {
+                return { success: false, error: 'Only creators can delete a group.' };
+            }
+
+            const memberIds = group.memberIds || [];
+
+            // Remove group from all members' groupIds
+            const batch = db.batch();
+            for (const memberId of memberIds) {
+                const userRef = db.collection('users').doc(memberId);
+                batch.update(userRef, {
+                    groupIds: firebase.firestore.FieldValue.arrayRemove(groupId)
+                });
+            }
+
+            // Delete all pairings subcollection
+            const pairingsSnapshot = await db.collection('groups').doc(groupId)
+                .collection('pairings').get();
+            pairingsSnapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+
+            // Delete all pairingHistory subcollection
+            const historySnapshot = await db.collection('groups').doc(groupId)
+                .collection('pairingHistory').get();
+            historySnapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+
+            // Delete the group document
+            batch.delete(db.collection('groups').doc(groupId));
+
+            await batch.commit();
+
+            // Update local user data
+            if (Auth.userData.groupIds) {
+                Auth.userData.groupIds = Auth.userData.groupIds.filter(id => id !== groupId);
+            }
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error deleting group:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
     // Get user's groups
     async getUserGroups() {
         if (!Auth.currentUser || !Auth.userData) return [];
