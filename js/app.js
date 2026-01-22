@@ -42,24 +42,24 @@ const App = {
         '⛺', '🛖', '🏚️', '🗼', '🗽', '⛲', '🌊', '🏞️'
     ],
 
-    // Group colors
+    // Group colors (rainbow order)
     groupColors: [
-        '#E07A5F', // Coral (primary)
-        '#81B29A', // Sage green
-        '#F2CC8F', // Warm yellow
-        '#3D405B', // Dark blue-gray
-        '#9B5DE5', // Purple
-        '#F15BB5', // Pink
-        '#00BBF9', // Blue
-        '#00F5D4', // Teal
-        '#FEE440', // Yellow
         '#FF6B6B', // Red
-        '#B8E0D2', // Pastel mint
-        '#D6EADF', // Pastel sage
+        '#F15BB5', // Pink
         '#EAC4D5', // Pastel rose
-        '#A2D2FF', // Pastel blue
+        '#E07A5F', // Coral
+        '#C4A484', // Light brown
+        '#FEE440', // Yellow
+        '#F2CC8F', // Warm yellow
+        '#81B29A', // Sage green
+        '#D6EADF', // Pastel sage
+        '#00F5D4', // Teal
         '#4ECDC4', // Turquoise
-        '#45B7D1'  // Sky blue
+        '#45B7D1', // Sky blue
+        '#00BBF9', // Blue
+        '#A2D2FF', // Pastel blue
+        '#9B5DE5', // Purple
+        '#3D405B'  // Dark blue-gray
     ],
 
     selectedGroupIcon: null,
@@ -626,6 +626,9 @@ const App = {
         const list = document.getElementById('groups-list');
         const noGroups = document.getElementById('no-groups');
 
+        // Sort groups alphabetically by name
+        groups.sort((a, b) => a.name.localeCompare(b.name));
+
         if (groups.length === 0) {
             list.innerHTML = '';
             noGroups.classList.remove('hidden');
@@ -665,7 +668,7 @@ const App = {
         if (result.success) {
             App.hideModals();
             document.getElementById('group-name').value = '';
-            App.showToast(`Group created! Code: ${result.code}`, 'success');
+            App.showToast('Group created!', 'success');
             App.loadGroups();
         } else {
             App.showToast(result.error, 'error');

@@ -56,7 +56,7 @@ html {
 
 body {
     font-family: var(--font-family);
-    background: transparent;
+    background: #87CEEB;
     color: var(--text-dark);
     line-height: 1.5;
     min-height: 100vh;
@@ -75,20 +75,22 @@ body {
 
 .nature-scene {
     position: fixed;
-    top: 0;
+    top: -100px;
     left: 0;
     right: 0;
-    bottom: 0;
+    bottom: -100px;
     pointer-events: none;
     z-index: 0;
     overflow: hidden;
     background: linear-gradient(
         180deg,
         #87CEEB 0%,
-        #B0E0E6 15%,
-        #E0F4FF 35%,
+        #87CEEB 5%,
+        #B0E0E6 18%,
+        #E0F4FF 38%,
         #FFF8F0 60%,
         #FFEFD5 80%,
+        #E8F5E8 95%,
         #E8F5E8 100%
     );
 }
@@ -832,6 +834,12 @@ body {
     background: var(--bg-white);
     border-radius: var(--radius-full);
     box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
 }
 
 .icon-profile {
@@ -1179,7 +1187,7 @@ body {
     position: fixed;
     bottom: 0;
     left: 0;
-    right: 0;
+    right: 70px;
     display: flex;
     gap: var(--spacing-md);
     padding: var(--spacing-md);
@@ -1977,6 +1985,7 @@ body {
     z-index: 300;
     opacity: 0;
     transition: opacity 0.3s;
+    text-align: center;
 }
 
 .toast.active {
@@ -2079,8 +2088,9 @@ body {
     }
 
     .bottom-actions {
-        max-width: 600px;
+        max-width: 530px;
         left: 50%;
+        right: auto;
         transform: translateX(-50%);
     }
 
