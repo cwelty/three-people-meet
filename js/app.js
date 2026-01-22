@@ -844,7 +844,7 @@ const App = {
                     <div class="pairing-members">
                         ${pairingMembers.map(m => `
                             <div class="pairing-member">
-                                <div class="member-avatar" style="background-color: rgba(255,255,255,0.9)">${App.getMemberAvatar(m)}</div>
+                                <div class="member-avatar" style="background-color: ${groupColor}80">${App.getMemberAvatar(m)}</div>
                                 <div class="member-name">${m.displayName}</div>
                             </div>
                         `).join('')}
