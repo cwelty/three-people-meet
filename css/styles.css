@@ -970,6 +970,7 @@ body {
     grid-template-columns: repeat(6, 1fr);
     gap: var(--spacing-xs);
     flex: 1;
+    margin: 0 var(--spacing-sm);
 }
 
 .avatar-page-indicator {

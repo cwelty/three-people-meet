@@ -200,9 +200,7 @@ const App = {
         if (isLoggedIn) {
             if (!Auth.hasInterests()) {
                 console.log('Showing interests screen');
-                App.showScreen('interests-screen');
-                App.renderAvatarGrid('avatar-grid');
-                App.renderInterestsGrid();
+                App.showInterestsScreen(false); // Setup mode - show avatar + interests
             } else {
                 console.log('Showing main screen');
                 App.showMainScreen();
@@ -256,9 +254,8 @@ const App = {
         document.getElementById('edit-interests-btn').addEventListener('click', () => {
             App.selectedAvatar = Auth.userData.avatar || null;
             App.selectedInterests = [...(Auth.userData.interests || [])];
-            App.renderAvatarGrid('avatar-grid');
             App.renderInterestsGrid();
-            App.showScreen('interests-screen');
+            App.showInterestsScreen(true); // Edit mode - interests only
         });
         document.getElementById('logout-btn').addEventListener('click', App.handleLogout);
         document.getElementById('save-name-btn').addEventListener('click', App.handleSaveDisplayName);
@@ -291,6 +288,29 @@ const App = {
         } else {
             console.error('Screen not found:', screenId);
         }
+    },
+
+    // Show interests screen with optional edit-only mode
+    showInterestsScreen(editInterestsOnly = false) {
+        const avatarSection = document.getElementById('avatar-setup-section');
+        const headerTitle = document.querySelector('#interests-screen .screen-header h2');
+        const headerSubtitle = document.querySelector('#interests-screen .screen-header p');
+
+        if (editInterestsOnly) {
+            // Edit interests only mode
+            avatarSection.classList.add('hidden');
+            headerTitle.textContent = 'Edit Interests';
+            headerSubtitle.textContent = 'Update your interests';
+        } else {
+            // Full setup mode
+            avatarSection.classList.remove('hidden');
+            headerTitle.textContent = 'Set Up Your Profile';
+            headerSubtitle.textContent = 'Choose your avatar and interests';
+            App.renderAvatarGrid('avatar-grid');
+        }
+
+        App.renderInterestsGrid();
+        App.showScreen('interests-screen');
     },
 
     // Modal management
@@ -560,11 +580,16 @@ const App = {
 
     toggleInterest(chip) {
         const interest = chip.dataset.interest;
+        const MAX_INTERESTS = 50;
 
         if (App.selectedInterests.includes(interest)) {
             App.selectedInterests = App.selectedInterests.filter(i => i !== interest);
             chip.classList.remove('selected');
         } else {
+            if (App.selectedInterests.length >= MAX_INTERESTS) {
+                App.showToast(`Maximum ${MAX_INTERESTS} interests allowed`, 'error');
+                return;
+            }
             App.selectedInterests.push(interest);
             chip.classList.add('selected');
         }
@@ -574,7 +599,7 @@ const App = {
 
     updateInterestsCount() {
         const count = App.selectedInterests.length;
-        document.getElementById('interests-count').textContent = `${count} selected`;
+        document.getElementById('interests-count').textContent = `${count} / 50 selected`;
         App.updateSaveButtonState();
     },
 
