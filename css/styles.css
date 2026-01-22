@@ -49,14 +49,15 @@
     box-sizing: border-box;
 }
 
-html {
+html, body {
     font-size: 16px;
     -webkit-tap-highlight-color: transparent;
+    background: #87CEEB;
+    overscroll-behavior: none;
 }
 
 body {
     font-family: var(--font-family);
-    background: #87CEEB;
     color: var(--text-dark);
     line-height: 1.5;
     min-height: 100vh;
@@ -75,22 +76,20 @@ body {
 
 .nature-scene {
     position: fixed;
-    top: -100px;
+    top: 0;
     left: 0;
     right: 0;
-    bottom: -100px;
+    bottom: 0;
     pointer-events: none;
     z-index: 0;
     overflow: hidden;
     background: linear-gradient(
         180deg,
         #87CEEB 0%,
-        #87CEEB 5%,
-        #B0E0E6 18%,
-        #E0F4FF 38%,
+        #B0E0E6 15%,
+        #E0F4FF 35%,
         #FFF8F0 60%,
         #FFEFD5 80%,
-        #E8F5E8 95%,
         #E8F5E8 100%
     );
 }
@@ -1187,10 +1186,11 @@ body {
     position: fixed;
     bottom: 0;
     left: 0;
-    right: 70px;
+    right: 0;
     display: flex;
     gap: var(--spacing-md);
     padding: var(--spacing-md);
+    padding-right: 70px;
     background: var(--bg-white);
     box-shadow: 0 -4px 16px rgba(61, 64, 91, 0.08);
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
@@ -2003,14 +2003,13 @@ body {
 /* Music Toggle Button */
 .music-toggle {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
+    bottom: 17px;
+    right: 16px;
     width: 40px;
     height: 40px;
     border-radius: var(--radius-full);
-    background: var(--bg-white);
+    background: var(--bg-cream);
     border: none;
-    box-shadow: var(--shadow-md);
     cursor: pointer;
     z-index: 200;
     display: flex;
@@ -2020,7 +2019,7 @@ body {
 }
 
 .music-toggle:hover {
-    transform: scale(1.1);
+    background: var(--border);
 }
 
 .music-toggle:active {
@@ -2088,10 +2087,11 @@ body {
     }
 
     .bottom-actions {
-        max-width: 530px;
+        max-width: 600px;
         left: 50%;
         right: auto;
         transform: translateX(-50%);
+        padding-right: var(--spacing-md);
     }
 
     .modal-content {
