@@ -106,12 +106,6 @@ const App = {
         // Set initial volume
         audio.volume = 0.3;
 
-        // Set random start time within first 2/3 of track
-        audio.addEventListener('loadedmetadata', () => {
-            const maxStart = audio.duration * (2 / 3);
-            audio.currentTime = Math.random() * maxStart;
-        });
-
         // Check saved preference
         const savedPref = localStorage.getItem('musicEnabled');
         App.musicEnabled = savedPref === 'true';
